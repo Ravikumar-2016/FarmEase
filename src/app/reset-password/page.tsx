@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +22,6 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const [token, setToken] = useState<string>("")
 
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -46,22 +45,18 @@ export default function ResetPasswordPage() {
 
   const validateForm = (): boolean => {
     const { password, confirmPassword } = formData
-
     if (!password || !confirmPassword) {
       setError("Please fill in all fields")
       return false
     }
-
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return false
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters long")
       return false
     }
-
     return true
   }
 
@@ -70,14 +65,12 @@ export default function ResetPasswordPage() {
     setError("")
 
     if (!validateForm()) return
-
     if (!token) {
       setError("Invalid reset token")
       return
     }
 
     setIsLoading(true)
-
     try {
       const response = await fetch("/api/reset-password", {
         method: "POST",
@@ -87,9 +80,7 @@ export default function ResetPasswordPage() {
           password: formData.password,
         }),
       })
-
       const data = await response.json()
-
       if (response.ok) {
         setIsSuccess(true)
       } else {
