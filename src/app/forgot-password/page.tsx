@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, Loader2, CheckCircle } from "lucide-react"
 
@@ -69,7 +68,7 @@ export default function ForgotPasswordPage() {
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
             <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-            <CardDescription>We've sent password reset instructions to your email address.</CardDescription>
+            <CardDescription>We&apos;ve sent password reset instructions to your email address.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
@@ -95,7 +94,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your email address and we'll send you instructions to reset your password.
+            Enter your email address and we&apos;ll send you instructions to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>

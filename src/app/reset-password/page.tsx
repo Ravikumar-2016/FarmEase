@@ -1,14 +1,12 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Lock, Loader2, CheckCircle } from "lucide-react"
 
@@ -17,42 +15,49 @@ export default function ResetPasswordPage() {
     password: "",
     confirmPassword: "",
   })
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [token, setToken] = useState("")
+  const [error, setError] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSuccess, setIsSuccess] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const [token, setToken] = useState<string>("")
 
   const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const tokenParam = searchParams.get("token")
-    if (tokenParam) {
-      setToken(tokenParam)
-    } else {
-      setError("Invalid or missing reset token")
+    if (searchParams) {
+      const tokenParam = searchParams.get("token")
+      if (tokenParam) {
+        setToken(tokenParam)
+      } else {
+        setError("Invalid or missing reset token")
+      }
     }
   }, [searchParams])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }))
     if (error) setError("")
   }
 
-  const validateForm = () => {
-    if (!formData.password || !formData.confirmPassword) {
+  const validateForm = (): boolean => {
+    const { password, confirmPassword } = formData
+
+    if (!password || !confirmPassword) {
       setError("Please fill in all fields")
       return false
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError("Passwords do not match")
       return false
     }
 
-    if (formData.password.length < 6) {
+    if (password.length < 6) {
       setError("Password must be at least 6 characters long")
       return false
     }
@@ -60,11 +65,12 @@ export default function ResetPasswordPage() {
     return true
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
     if (!validateForm()) return
+
     if (!token) {
       setError("Invalid reset token")
       return
@@ -89,8 +95,8 @@ export default function ResetPasswordPage() {
       } else {
         setError(data.message || "Something went wrong. Please try again.")
       }
-    } catch (error) {
-      console.error("Reset password error:", error)
+    } catch (err) {
+      console.error("Reset password error:", err)
       setError("Something went wrong. Please try again later.")
     } finally {
       setIsLoading(false)
@@ -145,8 +151,9 @@ export default function ResetPasswordPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword(prev => !prev)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -169,8 +176,9 @@ export default function ResetPasswordPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() => setShowConfirmPassword(prev => !prev)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -196,7 +204,10 @@ export default function ResetPasswordPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/login" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+            <Link
+              href="/login"
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
               Back to Sign In
             </Link>
           </div>
