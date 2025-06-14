@@ -1,291 +1,137 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Loader2, User, Mail, Lock, Phone, MapPin } from "lucide-react"
+import { Mail, Loader2, CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    userType: "",
-    fullName: "",
-    mobile: "",
-    area: "",
-    state: "",
-    zipcode: "",
-  })
-
-  const [errorMessage, setErrorMessage] = useState("")
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [message, setMessage] = useState("")
+
   const router = useRouter()
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-    if (errorMessage) setErrorMessage("")
-  }
-
-  const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, userType: value })
-    if (errorMessage) setErrorMessage("")
-  }
-
-  const validateForm = () => {
-    if (!formData.username || !formData.email || !formData.password || !formData.userType) {
-      setErrorMessage("Please fill in all required fields")
-      return false
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match")
-      return false
-    }
-
-    if (formData.password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters long")
-      return false
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
-      setErrorMessage("Please enter a valid email address")
-      return false
-    }
-
-    if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
-      setErrorMessage("Mobile number must be 10 digits")
-      return false
-    }
-
-    return true
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMessage("")
+    setError("")
+    setMessage("")
 
-    if (!validateForm()) return
+    if (!email) {
+      setError("Please enter your email address")
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address")
+      return
+    }
 
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/signup", {
+      const response = await fetch("/api/send-signup-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email }),
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        router.push("/login?message=Account created successfully! Please sign in.")
+        setIsSuccess(true)
+        setMessage(data.message || "OTP sent to your email address.")
       } else {
-        setErrorMessage(data.message || "Error creating account")
+        setError(data.message || "Something went wrong. Please try again.")
       }
     } catch (error) {
-      console.error("Signup error:", error)
-      setErrorMessage("Something went wrong. Please try again later.")
+      console.error("Signup OTP error:", error)
+      setError("Something went wrong. Please try again later.")
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleContinueToVerification = () => {
+    router.push(`/verify-signup?email=${encodeURIComponent(email)}`)
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+            <CardDescription>
+              We&apos;ve sent a 6-digit verification code to <strong>{email}</strong>. The code will expire in 10
+              minutes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+            <div className="space-y-3">
+              <Button onClick={handleContinueToVerification} className="w-full">
+                Verify Email & Create Account
+              </Button>
+              <Link href="/login">
+                <Button variant="outline" className="w-full">
+                  Already have an account? Sign In
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">Join FarmEase and start your journey</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Join FarmEase</CardTitle>
+          <CardDescription className="text-center">
+            Enter your email address to get started. We&apos;ll send you a verification code.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username *</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Choose a username"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="your@email.com"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create a password"
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="userType">User Type *</Label>
-                <Select onValueChange={handleSelectChange} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="employee">Employee</SelectItem>
-                    <SelectItem value="farmer">Farmer</SelectItem>
-                    <SelectItem value="labour">Labour</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  placeholder="Your full name"
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="mobile"
-                    name="mobile"
-                    value={formData.mobile}
-                    onChange={handleChange}
-                    placeholder="10-digit mobile number"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="area">Area</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="area"
-                    name="area"
-                    value={formData.area}
-                    onChange={handleChange}
-                    placeholder="Your area"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  placeholder="Your state"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="zipcode">Zip Code</Label>
-                <Input
-                  id="zipcode"
-                  name="zipcode"
-                  value={formData.zipcode}
-                  onChange={handleChange}
-                  placeholder="Postal code"
-                />
-              </div>
-            </div>
-
-            {errorMessage && (
+            {error && (
               <Alert variant="destructive">
-                <AlertDescription>{errorMessage}</AlertDescription>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
@@ -293,10 +139,10 @@ export default function SignupPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
+                  Sending Verification Code...
                 </>
               ) : (
-                "Create Account"
+                "Send Verification Code"
               )}
             </Button>
           </form>

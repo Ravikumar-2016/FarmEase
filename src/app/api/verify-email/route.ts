@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import bcrypt from "bcryptjs"
 
 export async function POST(request: Request) {
   try {
-    const { email, otp, password } = await request.json()
+    const { email, otp } = await request.json()
 
-    if (!email || !otp || !password) {
-      return NextResponse.json({ message: "Email, OTP, and new password are required" }, { status: 400 })
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters long" }, { status: 400 })
+    if (!email || !otp) {
+      return NextResponse.json({ message: "Email and OTP are required" }, { status: 400 })
     }
 
     // Validate email format
@@ -31,32 +26,38 @@ export async function POST(request: Request) {
 
     const user = await users.findOne({ email })
 
-    if (!user || !user.otp || !user.otpExpiry || user.otp !== otp || new Date(user.otpExpiry) < new Date()) {
-      return NextResponse.json({ message: "Invalid or expired OTP. Please request a new one." }, { status: 400 })
+    if (
+      !user ||
+      !user.emailVerificationOtp ||
+      !user.emailVerificationExpiry ||
+      user.emailVerificationOtp !== otp ||
+      new Date(user.emailVerificationExpiry) < new Date()
+    ) {
+      return NextResponse.json(
+        { message: "Invalid or expired verification code. Please request a new one." },
+        { status: 400 },
+      )
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Update password and remove OTP
+    // Update user as verified and remove OTP
     await users.updateOne(
       { _id: user._id },
       {
         $set: {
-          password: hashedPassword,
+          emailVerified: true,
           updatedAt: new Date(),
         },
         $unset: {
-          otp: "",
-          otpExpiry: "",
+          emailVerificationOtp: "",
+          emailVerificationExpiry: "",
         },
       },
     )
 
-    return NextResponse.json({ message: "Password has been reset successfully" }, { status: 200 })
+    return NextResponse.json({ message: "Email verified successfully" }, { status: 200 })
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    console.error("Reset password error:", errorMessage)
+    console.error("Email verification error:", errorMessage)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }

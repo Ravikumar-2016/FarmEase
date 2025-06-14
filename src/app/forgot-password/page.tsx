@@ -2,11 +2,12 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, Loader2, CheckCircle } from "lucide-react"
 
@@ -16,6 +17,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +50,7 @@ export default function ForgotPasswordPage() {
 
       if (response.ok) {
         setIsSuccess(true)
-        setMessage("Password reset instructions have been sent to your email address.")
+        setMessage(data.message || "OTP sent to your email address.")
       } else {
         setError(data.message || "Something went wrong. Please try again.")
       }
@@ -59,6 +62,10 @@ export default function ForgotPasswordPage() {
     }
   }
 
+  const handleContinueToReset = () => {
+    router.push(`/reset-password?email=${encodeURIComponent(email)}`)
+  }
+
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
@@ -68,13 +75,18 @@ export default function ForgotPasswordPage() {
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
             <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-            <CardDescription>We&apos;ve sent password reset instructions to your email address.</CardDescription>
+            <CardDescription>
+              We&apos;ve sent a 6-digit OTP to <strong>{email}</strong>. The OTP will expire in 10 minutes.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>{message}</AlertDescription>
             </Alert>
-            <div className="text-center">
+            <div className="space-y-3">
+              <Button onClick={handleContinueToReset} className="w-full">
+                Enter OTP & Reset Password
+              </Button>
               <Link href="/login">
                 <Button variant="outline" className="w-full">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -94,7 +106,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your email address and we&apos;ll send you instructions to reset your password.
+            Enter your email address and we&apos;ll send you a 6-digit OTP to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,6 +123,7 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -125,10 +138,10 @@ export default function ForgotPasswordPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending Instructions...
+                  Sending OTP...
                 </>
               ) : (
-                "Send Reset Instructions"
+                "Send OTP"
               )}
             </Button>
           </form>

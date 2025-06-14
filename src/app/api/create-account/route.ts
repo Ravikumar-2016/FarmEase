@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import bcrypt from "bcryptjs"
-import nodemailer from "nodemailer"
 
 export async function POST(request: Request) {
   try {
@@ -34,6 +33,13 @@ export async function POST(request: Request) {
     const client = await clientPromise
     const db = client.db("FarmEase")
     const usersCollection = db.collection("users")
+    const signupOtps = db.collection("signup_otps")
+
+    // Check if email was verified
+    const otpRecord = await signupOtps.findOne({ email: body.email, verified: true })
+    if (!otpRecord) {
+      return NextResponse.json({ message: "Email not verified. Please verify your email first." }, { status: 400 })
+    }
 
     // Check if user with same username or email exists
     const existingUser = await usersCollection.findOne({
@@ -52,10 +58,6 @@ export async function POST(request: Request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(body.password, 12)
 
-    // Generate email verification OTP
-    const emailVerificationOtp = Math.floor(100000 + Math.random() * 900000).toString()
-    const emailVerificationExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-
     // Create user object
     const newUser = {
       username: body.username,
@@ -67,9 +69,7 @@ export async function POST(request: Request) {
       area: body.area || "",
       state: body.state || "",
       zipcode: body.zipcode || "",
-      emailVerified: false,
-      emailVerificationOtp,
-      emailVerificationExpiry,
+      emailVerified: true, // Already verified via OTP
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -81,68 +81,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Failed to create user" }, { status: 500 })
     }
 
-    // Send verification email
-    await sendVerificationEmail(body.email, emailVerificationOtp)
+    // Clean up OTP record
+    await signupOtps.deleteOne({ email: body.email })
 
     return NextResponse.json(
       {
-        message: "Account created successfully! Please check your email for verification code.",
+        message: "Account created successfully!",
         userId: result.insertedId,
+        userType: body.userType,
       },
       { status: 201 },
     )
   } catch (error) {
-    console.error("Signup error:", error)
+    console.error("Create account error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
-}
-
-// Send verification email
-async function sendVerificationEmail(email: string, otp: string): Promise<void> {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_SECURE } = process.env
-
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM || typeof SMTP_SECURE === "undefined") {
-    console.log(`Email verification OTP for ${email}: ${otp}`) // For development
-    console.log("SMTP not configured - OTP logged to console for development")
-    return
-  }
-
-  const smtpPort = Number.parseInt(SMTP_PORT as string, 10)
-
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: smtpPort,
-    secure: SMTP_SECURE === "true",
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-  })
-
-  await transporter.sendMail({
-    from: SMTP_FROM,
-    to: email,
-    subject: "Verify Your FarmEase Account",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #16a34a;">Welcome to FarmEase!</h2>
-        <p>Thank you for creating your FarmEase account.</p>
-        <p>To complete your registration, please verify your email address using the code below:</p>
-        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
-          <h1 style="color: #16a34a; font-size: 32px; margin: 0;">${otp}</h1>
-        </div>
-        <p><strong>Important:</strong></p>
-        <ul>
-          <li>This verification code will expire in 10 minutes</li>
-          <li>This code can only be used once</li>
-          <li>Do not share this code with anyone</li>
-        </ul>
-        <p>If you did not create this account, you can safely ignore this email.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <p style="color: #6b7280; font-size: 14px;">
-          This is an automated message from FarmEase. Please do not reply to this email.
-        </p>
-      </div>
-    `,
-  })
 }
