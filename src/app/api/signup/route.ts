@@ -1,148 +1,181 @@
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import bcrypt from "bcryptjs"
-import nodemailer from "nodemailer"
+import { sendEmail, generateOTP, getOTPExpiry, emailTemplates } from "@/lib/email"
+import { Db } from "mongodb"
+
+interface SendOTPInput {
+  email: string
+}
+
+interface VerifyOTPInput {
+  email: string
+  otp: string
+}
+
+interface CreateAccountInput {
+  email: string
+  username: string
+  password: string
+  userType: string
+  fullName?: string
+  mobile?: string
+  area?: string
+  state?: string
+  zipcode?: string
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
-    // Validate required fields
-    const requiredFields = ["username", "email", "password", "userType"]
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        return NextResponse.json({ message: `${field} is required` }, { status: 400 })
-      }
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
-      return NextResponse.json({ message: "Invalid email format" }, { status: 400 })
-    }
-
-    // Validate password strength
-    if (body.password.length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters long" }, { status: 400 })
-    }
-
-    // Validate mobile number if provided
-    if (body.mobile && !/^\d{10}$/.test(body.mobile)) {
-      return NextResponse.json({ message: "Mobile number must be 10 digits" }, { status: 400 })
-    }
+    const { action, ...data } = body
 
     const client = await clientPromise
-    const db = client.db("FarmEase")
-    const usersCollection = db.collection("users")
+    const db: Db = client.db("FarmEase")
 
-    // Check if user with same username or email exists
-    const existingUser = await usersCollection.findOne({
-      $or: [{ username: body.username }, { email: body.email }],
-    })
-
-    if (existingUser) {
-      if (existingUser.username === body.username) {
-        return NextResponse.json({ message: "Username already exists" }, { status: 400 })
-      }
-      if (existingUser.email === body.email) {
-        return NextResponse.json({ message: "Email already exists" }, { status: 400 })
-      }
+    switch (action) {
+      case "send-otp":
+        return await handleSendOTP(db, data as SendOTPInput)
+      case "verify-otp":
+        return await handleVerifyOTP(db, data as VerifyOTPInput)
+      case "create-account":
+        return await handleCreateAccount(db, data as CreateAccountInput)
+      default:
+        return NextResponse.json({ message: "Invalid action" }, { status: 400 })
     }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(body.password, 12)
-
-    // Generate email verification OTP
-    const emailVerificationOtp = Math.floor(100000 + Math.random() * 900000).toString()
-    const emailVerificationExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-
-    // Create user object
-    const newUser = {
-      username: body.username,
-      email: body.email,
-      password: hashedPassword,
-      userType: body.userType,
-      fullName: body.fullName || "",
-      mobile: body.mobile || "",
-      area: body.area || "",
-      state: body.state || "",
-      zipcode: body.zipcode || "",
-      emailVerified: false,
-      emailVerificationOtp,
-      emailVerificationExpiry,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    // Insert user into database
-    const result = await usersCollection.insertOne(newUser)
-
-    if (!result.insertedId) {
-      return NextResponse.json({ message: "Failed to create user" }, { status: 500 })
-    }
-
-    // Send verification email
-    await sendVerificationEmail(body.email, emailVerificationOtp)
-
-    return NextResponse.json(
-      {
-        message: "Account created successfully! Please check your email for verification code.",
-        userId: result.insertedId,
-      },
-      { status: 201 },
-    )
-  } catch (error) {
-    console.error("Signup error:", error)
+  } catch (error: unknown) {
+    console.error("Signup API error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }
 
-// Send verification email
-async function sendVerificationEmail(email: string, otp: string): Promise<void> {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_SECURE } = process.env
-
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM || typeof SMTP_SECURE === "undefined") {
-    console.log(`Email verification OTP for ${email}: ${otp}`) // For development
-    console.log("SMTP not configured - OTP logged to console for development")
-    return
+async function handleSendOTP(db: Db, { email }: SendOTPInput) {
+  if (!email) {
+    return NextResponse.json({ message: "Email is required" }, { status: 400 })
   }
 
-  const smtpPort = Number.parseInt(SMTP_PORT as string, 10)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return NextResponse.json({ message: "Invalid email format" }, { status: 400 })
+  }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: smtpPort,
-    secure: SMTP_SECURE === "true",
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
+  const users = db.collection("users")
+  const signupOtps = db.collection("signup_otps")
+
+  const existingUser = await users.findOne({ email })
+  if (existingUser) {
+    return NextResponse.json({ message: "Email already registered. Please sign in instead." }, { status: 400 })
+  }
+
+  const otp = generateOTP()
+  const otpExpiry = getOTPExpiry()
+
+  await signupOtps.updateOne(
+    { email },
+    {
+      $set: {
+        email,
+        otp,
+        otpExpiry,
+        createdAt: new Date(),
+      },
     },
+    { upsert: true }
+  )
+
+  const emailSent = await sendEmail(email, "Verify Your FarmEase Account", emailTemplates.signupVerification(otp))
+
+  if (!emailSent) {
+    return NextResponse.json({ message: "Failed to send verification email" }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    message: "Verification code sent to your email. It will expire in 10 minutes.",
+  })
+}
+
+async function handleVerifyOTP(db: Db, { email, otp }: VerifyOTPInput) {
+  if (!email || !otp) {
+    return NextResponse.json({ message: "Email and OTP are required" }, { status: 400 })
+  }
+
+  if (!/^\d{6}$/.test(otp)) {
+    return NextResponse.json({ message: "OTP must be 6 digits" }, { status: 400 })
+  }
+
+  const signupOtps = db.collection("signup_otps")
+  const otpRecord = await signupOtps.findOne({ email })
+
+  if (!otpRecord || otpRecord.otp !== otp || new Date(otpRecord.otpExpiry) < new Date()) {
+    return NextResponse.json({ message: "Invalid or expired verification code" }, { status: 400 })
+  }
+
+  await signupOtps.updateOne({ email }, { $set: { verified: true, verifiedAt: new Date() } })
+
+  return NextResponse.json({ message: "Email verified successfully" })
+}
+
+async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
+  const { email, username, password, userType, fullName, mobile, area, state, zipcode } = accountData
+
+  if (!email || !username || !password || !userType) {
+    return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+  }
+
+  if (password.length < 6) {
+    return NextResponse.json({ message: "Password must be at least 6 characters" }, { status: 400 })
+  }
+
+  if (mobile && !/^\d{10}$/.test(mobile)) {
+    return NextResponse.json({ message: "Mobile number must be 10 digits" }, { status: 400 })
+  }
+
+  const users = db.collection("users")
+  const signupOtps = db.collection("signup_otps")
+
+  const otpRecord = await signupOtps.findOne({ email, verified: true })
+  if (!otpRecord) {
+    return NextResponse.json({ message: "Email not verified" }, { status: 400 })
+  }
+
+  const existingUser = await users.findOne({
+    $or: [{ username }, { email }],
   })
 
-  await transporter.sendMail({
-    from: SMTP_FROM,
-    to: email,
-    subject: "Verify Your FarmEase Account",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #16a34a;">Welcome to FarmEase!</h2>
-        <p>Thank you for creating your FarmEase account.</p>
-        <p>To complete your registration, please verify your email address using the code below:</p>
-        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
-          <h1 style="color: #16a34a; font-size: 32px; margin: 0;">${otp}</h1>
-        </div>
-        <p><strong>Important:</strong></p>
-        <ul>
-          <li>This verification code will expire in 10 minutes</li>
-          <li>This code can only be used once</li>
-          <li>Do not share this code with anyone</li>
-        </ul>
-        <p>If you did not create this account, you can safely ignore this email.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <p style="color: #6b7280; font-size: 14px;">
-          This is an automated message from FarmEase. Please do not reply to this email.
-        </p>
-      </div>
-    `,
+  if (existingUser) {
+    return NextResponse.json(
+      { message: existingUser.username === username ? "Username already exists" : "Email already exists" },
+      { status: 400 }
+    )
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 12)
+  const newUser = {
+    username,
+    email,
+    password: hashedPassword,
+    userType,
+    fullName: fullName || "",
+    mobile: mobile || "",
+    area: area || "",
+    state: state || "",
+    zipcode: zipcode || "",
+    emailVerified: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  const result = await users.insertOne(newUser)
+
+  if (!result.insertedId) {
+    return NextResponse.json({ message: "Failed to create account" }, { status: 500 })
+  }
+
+  await signupOtps.deleteOne({ email })
+
+  return NextResponse.json({
+    message: "Account created successfully!",
+    userType,
+    username,
   })
 }

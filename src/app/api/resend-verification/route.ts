@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import nodemailer from "nodemailer"
+import { sendEmail, generateOTP, getOTPExpiry, emailTemplates } from "@/lib/email"
+
 
 export async function POST(request: Request) {
   try {
@@ -31,8 +32,8 @@ export async function POST(request: Request) {
     }
 
     // Generate new OTP
-    const emailVerificationOtp = Math.floor(100000 + Math.random() * 900000).toString()
-    const emailVerificationExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+    const emailVerificationOtp = generateOTP()
+    const emailVerificationExpiry = getOTPExpiry()
 
     // Update user with new OTP
     await users.updateOne(
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     )
 
     // Send new verification email
-    await sendVerificationEmail(email, emailVerificationOtp)
+    await sendEmail(email, "Verify Your FarmEase Account - New Code", emailTemplates.signupVerification(emailVerificationOtp))
 
     return NextResponse.json({ message: "New verification code sent to your email" }, { status: 200 })
   } catch (error: unknown) {
@@ -57,52 +58,3 @@ export async function POST(request: Request) {
   }
 }
 
-// Send verification email
-async function sendVerificationEmail(email: string, otp: string): Promise<void> {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_SECURE } = process.env
-
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM || typeof SMTP_SECURE === "undefined") {
-    console.log(`Email verification OTP for ${email}: ${otp}`) // For development
-    console.log("SMTP not configured - OTP logged to console for development")
-    return
-  }
-
-  const smtpPort = Number.parseInt(SMTP_PORT as string, 10)
-
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: smtpPort,
-    secure: SMTP_SECURE === "true",
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-  })
-
-  await transporter.sendMail({
-    from: SMTP_FROM,
-    to: email,
-    subject: "Verify Your FarmEase Account - New Code",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #16a34a;">New Verification Code</h2>
-        <p>You requested a new verification code for your FarmEase account.</p>
-        <p>Please use the code below to verify your email address:</p>
-        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
-          <h1 style="color: #16a34a; font-size: 32px; margin: 0;">${otp}</h1>
-        </div>
-        <p><strong>Important:</strong></p>
-        <ul>
-          <li>This verification code will expire in 10 minutes</li>
-          <li>This code can only be used once</li>
-          <li>Do not share this code with anyone</li>
-        </ul>
-        <p>If you did not request this code, you can safely ignore this email.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <p style="color: #6b7280; font-size: 14px;">
-          This is an automated message from FarmEase. Please do not reply to this email.
-        </p>
-      </div>
-    `,
-  })
-}
