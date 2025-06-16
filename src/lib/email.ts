@@ -59,13 +59,18 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
       html,
     }
 
+    console.log("Attempting to send email to:", to)
     const result = await transporter.sendMail(mailOptions)
     console.log(`✅ Email sent successfully to ${to}:`, result.messageId)
     return true
   } catch (error) {
     console.error("❌ Email sending failed:", error)
-    // Return true for development to continue flow
-    return true
+    // In development, still return true to continue the flow
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔧 Development mode: Continuing despite email error")
+      return true
+    }
+    return false
   }
 }
 
