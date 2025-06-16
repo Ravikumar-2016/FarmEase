@@ -325,29 +325,6 @@ export default function ContactPage() {
                   })}
                 </div>
               </div>
-
-              {/* Quick Links */}
-              <Card className="bg-green-50 border-green-200">
-                <CardHeader>
-                  <CardTitle className="text-lg text-green-800">Quick Links</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Link href="/features" className="block text-green-700 hover:text-green-800 hover:underline">
-                      → Explore Platform Features
-                    </Link>
-                    <Link href="/about" className="block text-green-700 hover:text-green-800 hover:underline">
-                      → Learn About FarmEase
-                    </Link>
-                    <Link href="/signup" className="block text-green-700 hover:text-green-800 hover:underline">
-                      → Join Our Community
-                    </Link>
-                    <Link href="/privacy" className="block text-green-700 hover:text-green-800 hover:underline">
-                      → Privacy Policy
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
