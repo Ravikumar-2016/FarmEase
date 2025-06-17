@@ -1,8 +1,19 @@
 "use client";
 import { useState } from "react";
 
+type FertilizerFormData = {
+  Temparature: string;
+  Humidity: string;
+  Moisture: string;
+  SoilType: string;
+  CropType: string;
+  Nitrogen: string;
+  Phosphorous: string;
+  Potassium: string;
+};
+
 export default function FarmerPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FertilizerFormData>({
     Temparature: "",
     Humidity: "",
     Moisture: "",
@@ -15,7 +26,9 @@ export default function FarmerPage() {
 
   const [result, setResult] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -39,27 +52,37 @@ export default function FarmerPage() {
       const data = await response.json();
       setResult(data.fertilizer || `Error: ${data.error}`);
     } catch (error) {
+      console.error("Error fetching fertilizer recommendation:", error);
       setResult("Something went wrong.");
     }
   };
+
+  const numericFields: (keyof FertilizerFormData)[] = [
+    "Temparature", "Humidity", "Moisture", "Nitrogen", "Phosphorous", "Potassium"
+  ];
 
   return (
     <div className="max-w-xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Fertilizer Recommendation</h2>
 
-      {["Temparature", "Humidity", "Moisture", "Nitrogen", "Phosphorous", "Potassium"].map((field) => (
+      {numericFields.map((field) => (
         <input
           key={field}
           type="number"
           name={field}
-          value={(formData as any)[field]}
+          value={formData[field]}
           onChange={handleChange}
           placeholder={field}
           className="w-full p-2 mb-3 border rounded"
         />
       ))}
 
-      <select name="SoilType" value={formData.SoilType} onChange={handleChange} className="w-full p-2 mb-3 border rounded">
+      <select
+        name="SoilType"
+        value={formData.SoilType}
+        onChange={handleChange}
+        className="w-full p-2 mb-3 border rounded"
+      >
         <option>Sandy</option>
         <option>Loamy</option>
         <option>Black</option>
@@ -67,7 +90,12 @@ export default function FarmerPage() {
         <option>Clayey</option>
       </select>
 
-      <select name="CropType" value={formData.CropType} onChange={handleChange} className="w-full p-2 mb-3 border rounded">
+      <select
+        name="CropType"
+        value={formData.CropType}
+        onChange={handleChange}
+        className="w-full p-2 mb-3 border rounded"
+      >
         <option>Wheat</option>
         <option>Barley</option>
         <option>Maize</option>
@@ -79,7 +107,10 @@ export default function FarmerPage() {
         <option>Pulses</option>
       </select>
 
-      <button onClick={handleSubmit} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      <button
+        onClick={handleSubmit}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      >
         Predict Fertilizer
       </button>
 
