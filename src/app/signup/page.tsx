@@ -21,8 +21,6 @@ import {
   MapPin,
   Eye,
   EyeOff,
-  Shield,
-  Briefcase,
   Sprout,
   Hammer,
   AlertCircle,
