@@ -70,14 +70,18 @@ export function Header() {
               className="h-12 w-12 rounded-full object-cover border border-green-600"
               priority
             />
-            <div className="hidden sm:flex flex-col items-center leading-tight">
-              <h1 className="text-[1.25rem] font-extrabold text-gray-900 tracking-wide">
-                FarmEase
-              </h1>
-              <p className="text-[0.9rem] text-green-600 font-medium tracking-tight -mt-1" style={{ fontFamily: "'Edu VIC WA NT Hand'" }}>
-                Smart Farming Platform
-              </p>
-            </div>
+            <div className="flex flex-col items-center leading-tight">
+  <h1 className="text-[1.25rem] font-extrabold text-gray-900 tracking-wide">
+    FarmEase
+  </h1>
+  <p
+    className="text-[0.9rem] text-green-600 font-medium tracking-tight -mt-1"
+    style={{ fontFamily: "'Edu VIC WA NT Hand'" }}
+  >
+    Smart Farming Platform
+  </p>
+</div>
+
           </Link>
 
           {/* Desktop Navigation and Auth */}
@@ -148,6 +152,7 @@ export function Header() {
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
+
 
         {/* Mobile Navigation */}
         {isMenuOpen && (

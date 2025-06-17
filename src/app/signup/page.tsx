@@ -29,22 +29,7 @@ import {
 } from "lucide-react"
 
 const userTypes = [
-  {
-    value: "admin",
-    label: "Admin",
-    description: "System administrator with full access",
-    icon: Shield,
-    color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
-    selectedColor: "bg-blue-100 border-blue-500",
-  },
-  {
-    value: "employee",
-    label: "Employee",
-    description: "Staff member with operational access",
-    icon: Briefcase,
-    color: "bg-purple-50 border-purple-200 hover:bg-purple-100",
-    selectedColor: "bg-purple-100 border-purple-500",
-  },
+  
   {
     value: "farmer",
     label: "Farmer",
