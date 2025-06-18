@@ -54,7 +54,6 @@ export default function CropRecommendation() {
   const [retryCount, setRetryCount] = useState(0)
   const [showRetryMessage, setShowRetryMessage] = useState(false)
   const [cropSaved, setCropSaved] = useState(false)
-  const [savedCropData, setSavedCropData] = useState<CropFormData | null>(null)
   const [savedCropResult, setSavedCropResult] = useState<string>("")
   const [cropData, setCropData] = useState<CropFormData>({
     Temperature: "",
@@ -246,7 +245,6 @@ export default function CropRecommendation() {
       const result = await response.json()
       if (result.success) {
         setCropSaved(true)
-        setSavedCropData({ ...cropData })
         setSavedCropResult(cropResult)
 
         toast({

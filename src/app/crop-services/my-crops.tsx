@@ -55,6 +55,7 @@ export default function MyCrops() {
         setError(data.error || "Failed to fetch crops")
       }
     } catch (error) {
+      console.error("Error fetching user crops:", error)
       setError("Failed to load your crops")
       toast({
         title: "Error",
@@ -91,6 +92,7 @@ export default function MyCrops() {
         throw new Error(result.error)
       }
     } catch (error) {
+       console.error("Error fetching user crops:", error)
       toast({
         title: "Error",
         description: "Failed to delete crop.",
@@ -103,7 +105,10 @@ export default function MyCrops() {
   }
 
   useEffect(() => {
-    fetchUserCrops()
+    if (typeof window !== "undefined") {
+      fetchUserCrops()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const formatDate = (dateString: string) => {
