@@ -59,153 +59,176 @@ export default function CropServicesPage() {
   }
 
   return (
-     
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-       
-  {/* Mobile-First Header */}
-  <header className="bg-white shadow-sm border-b w-full">
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-      {/* Mobile Header */}
-      <div className="flex items-center justify-between py-3 sm:py-4 lg:hidden w-full overflow-hidden">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push("/dashboard/farmer")}
-          className="flex items-center gap-1 text-gray-600 hover:text-gray-900 p-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Back</span>
-        </Button>
-        <div className="flex items-center gap-2">
-          <Sprout className="h-6 w-6 text-green-600" />
-          <div className="text-center">
-            <h1 className="text-lg font-bold text-gray-900">Crop Services</h1>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
+      {/* Page Header - Positioned below global header with proper z-index */}
+      <div className="relative z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          {/* Mobile Header - Compact Single Line Layout */}
+          <div className="lg:hidden px-3 py-3">
+            {/* Top Navigation Line */}
+            <div className="flex items-center justify-between mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard/farmer")}
+                className="flex items-center gap-1 text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors px-2 py-1 h-8"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                <span className="text-xs font-medium">Back</span>
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 rounded-full">
+                  <Sprout className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-center">
+                  <h1 className="text-lg font-bold text-gray-900 leading-tight">Crop Services</h1>
+                </div>
+              </div>
+
+              <Badge
+                variant="secondary"
+                className="bg-green-100 text-green-700 font-medium px-2 py-1 rounded-full text-xs"
+              >
+                {user.username}
+              </Badge>
+            </div>
+
+            {/* Subtitle */}
+            <div className="text-center">
+              <p className="text-xs text-gray-600">AI-powered farming solutions</p>
+            </div>
+          </div>
+
+          {/* Desktop Header */}
+          <div className="hidden lg:block px-8 py-6">
+            <div className="flex items-center justify-between">
+              {/* Back Button */}
+              <Button
+                variant="outline"
+                onClick={() => router.push("/dashboard/farmer")}
+                className="flex items-center gap-2 text-gray-700 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="font-medium">Back to Dashboard</span>
+              </Button>
+
+              {/* Center Title */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl shadow-sm">
+                    <Sprout className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="text-center">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-1">Crop Services</h1>
+                    <p className="text-gray-600">AI-powered farming solutions</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Welcome Badge */}
+              <div className="flex flex-col items-end">
+                <Badge
+                  variant="secondary"
+                  className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 font-semibold px-4 py-2 rounded-full text-sm shadow-sm"
+                >
+                  Welcome, {user.username}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="w-auto">
-          {/* Spacer for balance */}
-          <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs px-2 py-1 whitespace-nowrap">
-            {user.username}
-          </Badge>
-        </div>
       </div>
-
-      {/* Desktop Header */}
-<div className="hidden lg:flex flex-col items-center justify-center py-4 w-full">
-  <div className="flex items-center justify-between w-full mx-auto gap-x-0 px-6">
-    
-    {/* Back Button */}
-    <Button
-      variant="ghost"
-      onClick={() => router.push("/dashboard/farmer")}
-      className="flex items-center gap-2 text-lg"
-    >
-      <ArrowLeft className="h-5 w-5" />
-      Back to Dashboard
-    </Button>
-    
-    {/* Title and Subtitle */}
-    <div className="flex flex-col items-center">
-      <div className="flex items-center gap-2">
-        <Sprout className="w-8 text-green-600" />
-        <h1 className="text-3xl font-bold text-gray-900">Crop Services</h1>
-      </div>
-      <p className="text-sm text-gray-500 mt-1">AI-powered farming solutions</p>
-    </div>
-
-    {/* Welcome Badge */}
-    <Badge variant="secondary" className="bg-green-100 text-green-800 text-base">
-      Welcome, {user.username}
-    </Badge>
-  </div>
-</div>
-
-
-      {/* Mobile Subtitle */}
-      <div className="lg:hidden pb-3 text-center">
-        <p className="text-xs text-gray-500">AI-powered farming solutions</p>
-      </div>
-    </div>
-  </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-3 sm:py-6 px-3 sm:px-6 lg:px-8">
-        <div className="space-y-4 sm:space-y-6">
+      <main className="relative z-0 max-w-7xl mx-auto py-4 px-3 sm:px-6 lg:px-8">
+        <div className="space-y-4">
           <Tabs defaultValue="crop-recommendation" className="w-full">
-            {/* Mobile-Optimized Tabs */}
-            <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm border rounded-lg h-auto p-1">
+            {/* Mobile-Optimized Compact Tabs */}
+            <TabsList className="grid w-full grid-cols-3 bg-white shadow-md border border-gray-200 rounded-lg h-auto p-1 mb-4 lg:p-2 lg:mb-8 lg:rounded-xl lg:shadow-lg">
               <TabsTrigger
                 value="crop-recommendation"
-                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-3 text-xs sm:text-sm data-[state=active]:bg-green-50 data-[state=active]:text-green-700"
+                className="flex flex-col items-center gap-1 py-2 px-1 text-xs font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-green-50 lg:flex-row lg:gap-2 lg:py-3 lg:px-4 lg:text-sm lg:rounded-lg"
               >
-                <Sprout className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Sprout className="h-3 w-3 lg:h-4 lg:w-4" />
                 <span className="text-center leading-tight">
-                  <span className="block sm:inline">Crop</span>
-                  <span className="block sm:inline sm:ml-1">Recommendation</span>
+                  <span className="block lg:inline">Crop</span>
+                  <span className="block lg:inline lg:ml-1">Recommendation</span>
                 </span>
               </TabsTrigger>
+
               <TabsTrigger
                 value="fertilizer-recommendation"
-                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-3 text-xs sm:text-sm data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+                className="flex flex-col items-center gap-1 py-2 px-1 text-xs font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-emerald-50 lg:flex-row lg:gap-2 lg:py-3 lg:px-4 lg:text-sm lg:rounded-lg"
               >
-                <Beaker className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Beaker className="h-3 w-3 lg:h-4 lg:w-4" />
                 <span className="text-center leading-tight">
-                  <span className="block sm:inline">Fertilizer</span>
-                  <span className="block sm:inline sm:ml-1">Recommendation</span>
+                  <span className="block lg:inline">Fertilizer</span>
+                  <span className="block lg:inline lg:ml-1">Recommendation</span>
                 </span>
               </TabsTrigger>
+
               <TabsTrigger
                 value="my-crops"
-                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-3 text-xs sm:text-sm data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                className="flex flex-col items-center gap-1 py-2 px-1 text-xs font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-blue-50 lg:flex-row lg:gap-2 lg:py-3 lg:px-4 lg:text-sm lg:rounded-lg"
               >
-                <Database className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Database className="h-3 w-3 lg:h-4 lg:w-4" />
                 <span className="text-center leading-tight">
-                  <span className="block sm:inline">My</span>
-                  <span className="block sm:inline sm:ml-1">Crops</span>
+                  <span className="block lg:inline">My</span>
+                  <span className="block lg:inline lg:ml-1">Crops</span>
                 </span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Tab Contents */}
-            <TabsContent value="crop-recommendation" className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 sm:pb-6">
-                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                    <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                    AI-Powered Crop Recommendation
+            {/* Enhanced Tab Contents */}
+            <TabsContent value="crop-recommendation" className="space-y-4 lg:space-y-6">
+              <Card className="shadow-md border-0 bg-gradient-to-br from-white to-green-50 lg:shadow-lg">
+                <CardHeader className="pb-4 lg:pb-6">
+                  <CardTitle className="flex items-center gap-2 text-lg lg:gap-3 lg:text-xl">
+                    <div className="p-1.5 bg-green-100 rounded-lg lg:p-2">
+                      <Sprout className="h-4 w-4 text-green-600 lg:h-5 lg:w-5" />
+                    </div>
+                    <span className="text-base lg:text-xl">AI-Powered Crop Recommendation</span>
                   </CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
+                  <CardDescription className="text-sm text-gray-600 leading-relaxed lg:text-base">
                     Get personalized crop recommendations based on your soil conditions, climate, and nutrient levels
+                    using advanced AI algorithms
                   </CardDescription>
                 </CardHeader>
               </Card>
               <CropRecommendation />
             </TabsContent>
 
-            <TabsContent value="fertilizer-recommendation" className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 sm:pb-6">
-                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                    <Beaker className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                    Smart Fertilizer Recommendation
+            <TabsContent value="fertilizer-recommendation" className="space-y-4 lg:space-y-6">
+              <Card className="shadow-md border-0 bg-gradient-to-br from-white to-emerald-50 lg:shadow-lg">
+                <CardHeader className="pb-4 lg:pb-6">
+                  <CardTitle className="flex items-center gap-2 text-lg lg:gap-3 lg:text-xl">
+                    <div className="p-1.5 bg-emerald-100 rounded-lg lg:p-2">
+                      <Beaker className="h-4 w-4 text-emerald-600 lg:h-5 lg:w-5" />
+                    </div>
+                    <span className="text-base lg:text-xl">Smart Fertilizer Recommendation</span>
                   </CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Optimize your crop yield with AI-recommended fertilizers tailored to your specific conditions
+                  <CardDescription className="text-sm text-gray-600 leading-relaxed lg:text-base">
+                    Optimize your crop yield with AI-recommended fertilizers tailored to your specific soil and
+                    environmental conditions
                   </CardDescription>
                 </CardHeader>
               </Card>
               <FertilizerRecommendation />
             </TabsContent>
 
-            <TabsContent value="my-crops" className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 sm:pb-6">
-                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                    <Database className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                    My Crops Collection
+            <TabsContent value="my-crops" className="space-y-4 lg:space-y-6">
+              <Card className="shadow-md border-0 bg-gradient-to-br from-white to-blue-50 lg:shadow-lg">
+                <CardHeader className="pb-4 lg:pb-6">
+                  <CardTitle className="flex items-center gap-2 text-lg lg:gap-3 lg:text-xl">
+                    <div className="p-1.5 bg-blue-100 rounded-lg lg:p-2">
+                      <Database className="h-4 w-4 text-blue-600 lg:h-5 lg:w-5" />
+                    </div>
+                    <span className="text-base lg:text-xl">My Crops Collection</span>
                   </CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Manage and track all your saved crop recommendations and farming data
+                  <CardDescription className="text-sm text-gray-600 leading-relaxed lg:text-base">
+                    Manage and track all your saved crop recommendations, farming data, and cultivation history in one
+                    place
                   </CardDescription>
                 </CardHeader>
               </Card>

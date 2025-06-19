@@ -13,8 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { UserLogo } from "@/components/logos/user-logo"
-import { Menu, X, User, Settings, LogOut, ChevronDown } from 'lucide-react'
-
+import { Menu, X, User, Settings, LogOut, ChevronDown } from "lucide-react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -71,17 +70,14 @@ export function Header() {
               priority
             />
             <div className="flex flex-col items-center leading-tight">
-  <h1 className="text-[1.25rem] font-extrabold text-gray-900 tracking-wide">
-    FarmEase
-  </h1>
-  <p
-    className="text-[0.9rem] text-green-600 font-medium tracking-tight -mt-1"
-    style={{ fontFamily: "'Edu VIC WA NT Hand'" }}
-  >
-    Smart Farming Platform
-  </p>
-</div>
-
+              <h1 className="text-[1.25rem] font-extrabold text-gray-900 tracking-wide">FarmEase</h1>
+              <p
+                className="text-[0.9rem] text-green-600 font-medium tracking-tight -mt-1"
+                style={{ fontFamily: "'Edu VIC WA NT Hand'" }}
+              >
+                Smart Farming Platform
+              </p>
+            </div>
           </Link>
 
           {/* Desktop Navigation and Auth */}
@@ -104,32 +100,79 @@ export function Header() {
             {isLoggedIn && userInfo ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 hover:bg-green-50">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center space-x-2 hover:bg-green-50 px-3 py-2 rounded-lg transition-all duration-200"
+                  >
                     <UserLogo userName={userInfo.username} size="sm" />
                     <span className="font-medium text-gray-700">{userInfo.username}</span>
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                    <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium text-gray-900">{userInfo.username}</p>
-                    <p className="text-xs text-gray-500 capitalize">{userInfo.userType}</p>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 p-2 bg-white border border-gray-200 shadow-xl rounded-xl mt-2 animate-in slide-in-from-top-2 duration-200"
+                  sideOffset={8}
+                >
+                  {/* User Info Header */}
+                  <div className="px-3 py-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg mb-2">
+                    <div className="flex items-center space-x-3">
+                      <UserLogo userName={userInfo.username} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">Welcome, {userInfo.username}</p>
+                        <p className="text-xs text-green-600 font-medium capitalize">{userInfo.userType} Account</p>
+                      </div>
+                    </div>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleDashboardClick} className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
+
+                  <DropdownMenuSeparator className="my-2 bg-gray-100" />
+
+                  {/* Menu Items */}
+                  <DropdownMenuItem
+                    onClick={handleDashboardClick}
+                    className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors duration-150 group"
+                  >
+                    <div className="flex items-center space-x-3 w-full">
+                      <div className="p-1.5 bg-green-100 rounded-md group-hover:bg-green-200 transition-colors">
+                        <User className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">Dashboard</p>
+                        <p className="text-xs text-gray-500">View your overview</p>
+                      </div>
+                    </div>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
+                    <Link
+                      href="/settings"
+                      className="px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors duration-150 group flex items-center space-x-3 w-full"
+                    >
+                      <div className="p-1.5 bg-gray-100 rounded-md group-hover:bg-gray-200 transition-colors">
+                        <Settings className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">Settings</p>
+                        <p className="text-xs text-gray-500">Manage preferences</p>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+
+                  <DropdownMenuSeparator className="my-2 bg-gray-100" />
+
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-red-50 transition-colors duration-150 group"
+                  >
+                    <div className="flex items-center space-x-3 w-full">
+                      <div className="p-1.5 bg-red-100 rounded-md group-hover:bg-red-200 transition-colors">
+                        <LogOut className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-600">Sign Out</p>
+                        <p className="text-xs text-red-400">End your session</p>
+                      </div>
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -153,7 +196,6 @@ export function Header() {
           </Button>
         </div>
 
-
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white shadow-sm">
@@ -172,44 +214,53 @@ export function Header() {
               <div className="border-t pt-3 mt-3">
                 {isLoggedIn && userInfo ? (
                   <div className="space-y-2">
-                    <div className="flex items-center px-3 py-2">
+                    <div className="flex items-center px-3 py-3 bg-green-50 rounded-lg">
                       <UserLogo userName={userInfo.username} size="sm" />
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900">{userInfo.username}</p>
-                        <p className="text-xs text-gray-500 capitalize">{userInfo.userType}</p>
+                        <p className="text-xs text-green-600 capitalize font-medium">{userInfo.userType} Account</p>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50"
+                      className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50 py-3"
                       onClick={() => {
                         handleDashboardClick()
                         setIsMenuOpen(false)
                       }}
                     >
-                      <User className="mr-2 h-4 w-4" />
-                      Dashboard
+                      <User className="mr-3 h-4 w-4" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Dashboard</p>
+                        <p className="text-xs text-gray-500">View your overview</p>
+                      </div>
                     </Button>
                     <Link href="/settings">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50"
+                        className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50 py-3"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
+                        <Settings className="mr-3 h-4 w-4" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium">Settings</p>
+                          <p className="text-xs text-gray-500">Manage preferences</p>
+                        </div>
                       </Button>
                     </Link>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-red-600 hover:bg-red-50"
+                      className="w-full justify-start text-red-600 hover:bg-red-50 py-3"
                       onClick={() => {
                         handleSignOut()
                         setIsMenuOpen(false)
                       }}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Sign Out</p>
+                        <p className="text-xs text-red-400">End your session</p>
+                      </div>
                     </Button>
                   </div>
                 ) : (
