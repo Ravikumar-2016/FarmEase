@@ -111,6 +111,7 @@ interface LocationData {
   state: string
 }
 
+
 export default function WeatherPage() {
   const router = useRouter()
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
@@ -840,7 +841,7 @@ export default function WeatherPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-gray-900">
                     <Eye className="h-5 w-5 text-blue-600" />
-                    5-Day Weather Forecast
+                      {`${weatherData.daily.length}-Day Weather Forecast`}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
