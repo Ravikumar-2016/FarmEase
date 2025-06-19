@@ -249,22 +249,6 @@ export default function FertilizerRecommendation() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 lg:p-8">
-          {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <Alert className="mb-6 border-red-200 bg-red-50">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <AlertDescription className="text-red-800">
-                <strong>Please fill in all required fields for best recommendations:</strong>
-                <ul className="mt-2 list-disc list-inside space-y-1">
-                  {validationErrors.map((error, index) => (
-                    <li key={index} className="text-sm">
-                      {error}
-                    </li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Environmental Conditions */}
@@ -383,9 +367,29 @@ export default function FertilizerRecommendation() {
                 </div>
               ))}
             </div>
+
+            {/* Centered Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="flex justify-center mb-6">
+              <Alert className="border-red-200 bg-red-50 w-full max-w-2xl">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertDescription className="text-red-800">
+                  <strong>Please fill in all required fields for best recommendations:</strong>
+                  <ul className="mt-2 list-disc list-inside space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index} className="text-sm">
+                        {error}
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
           </div>
 
-          <Separator className="my-6 sm:my-8" />
+          {/* <Separator className="my-6 sm:my-8" /> */}
+          <Separator className="my-2 sm:my-2" /> 
 
           {isLoading && showRetryMessage && (
             <Alert className="mb-6 border-yellow-200 bg-yellow-50">

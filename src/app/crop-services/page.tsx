@@ -22,6 +22,8 @@ export default function CropServicesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+
     const userType = localStorage.getItem("userType")
     const username = localStorage.getItem("username")
 
@@ -57,68 +59,74 @@ export default function CropServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile-First Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          {/* Mobile Header */}
-          <div className="flex items-center justify-between py-3 sm:py-4 lg:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/dashboard/farmer")}
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 p-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm">Back</span>
-            </Button>
-            <div className="flex items-center gap-2">
-              <Sprout className="h-6 w-6 text-green-600" />
-              <div className="text-center">
-                <h1 className="text-lg font-bold text-gray-900">Crop Services</h1>
-              </div>
-            </div>
-            <div className="w-16">
-              {" "}
-              {/* Spacer for balance */}
-              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs px-2 py-1">
-                {user.username}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Desktop Header */}
-          <div className="hidden lg:flex items-center justify-between py-6">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/dashboard/farmer")}
-                className="mr-4 flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-              <div className="flex items-center">
-                <Sprout className="h-8 w-8 text-green-600 mr-3" />
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Crop Services</h1>
-                  <p className="text-sm text-gray-500">AI-powered farming solutions</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Welcome, {user.username}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Mobile Subtitle */}
-          <div className="lg:hidden pb-3 text-center">
-            <p className="text-xs text-gray-500">AI-powered farming solutions</p>
+     
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+       
+  {/* Mobile-First Header */}
+  <header className="bg-white shadow-sm border-b w-full">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+      {/* Mobile Header */}
+      <div className="flex items-center justify-between py-3 sm:py-4 lg:hidden w-full overflow-hidden">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/dashboard/farmer")}
+          className="flex items-center gap-1 text-gray-600 hover:text-gray-900 p-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-sm">Back</span>
+        </Button>
+        <div className="flex items-center gap-2">
+          <Sprout className="h-6 w-6 text-green-600" />
+          <div className="text-center">
+            <h1 className="text-lg font-bold text-gray-900">Crop Services</h1>
           </div>
         </div>
-      </header>
+        <div className="w-auto">
+          {/* Spacer for balance */}
+          <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs px-2 py-1 whitespace-nowrap">
+            {user.username}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+<div className="hidden lg:flex flex-col items-center justify-center py-4 w-full">
+  <div className="flex items-center justify-between w-full mx-auto gap-x-0 px-6">
+    
+    {/* Back Button */}
+    <Button
+      variant="ghost"
+      onClick={() => router.push("/dashboard/farmer")}
+      className="flex items-center gap-2 text-lg"
+    >
+      <ArrowLeft className="h-5 w-5" />
+      Back to Dashboard
+    </Button>
+    
+    {/* Title and Subtitle */}
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-2">
+        <Sprout className="w-8 text-green-600" />
+        <h1 className="text-3xl font-bold text-gray-900">Crop Services</h1>
+      </div>
+      <p className="text-sm text-gray-500 mt-1">AI-powered farming solutions</p>
+    </div>
+
+    {/* Welcome Badge */}
+    <Badge variant="secondary" className="bg-green-100 text-green-800 text-base">
+      Welcome, {user.username}
+    </Badge>
+  </div>
+</div>
+
+
+      {/* Mobile Subtitle */}
+      <div className="lg:hidden pb-3 text-center">
+        <p className="text-xs text-gray-500">AI-powered farming solutions</p>
+      </div>
+    </div>
+  </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-3 sm:py-6 px-3 sm:px-6 lg:px-8">
