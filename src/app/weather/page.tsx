@@ -942,7 +942,7 @@ export default function WeatherPage() {
                           {/* Hourly Details - Only show if expanded */}
                           {expandedDay === index && (
                             <div className="mt-6 pt-4 border-t border-gray-200">
-                              <h4 className="font-semibold mb-3 text-gray-900">Hourly Temperature Details</h4>
+                              <h4 className="font-semibold mb-3 text-gray-900">Temperature Details</h4>
                               <div className="overflow-x-auto">
                                 <div className="flex gap-2 pb-2 min-w-max">
                                   {getDayHourlyData(index).map((hour, hourIndex) => (
