@@ -140,6 +140,40 @@ export const formatWindSpeed = (speed: number, unit: "mph" | "kmh" = "mph"): str
   return `${Math.round(speed)} mph`
 }
 
+export const formatTimeWithTimezone = (timestamp: number, timezone?: string | null): string => {
+  try {
+    const date = new Date(timestamp * 1000)
+
+    if (timezone) {
+      return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: timezone,
+      })
+    }
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  } catch (error) {
+    console.error("Error formatting time with timezone:", error)
+    return new Date(timestamp * 1000).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      hour12: true,
+    })
+  }
+}
+
+export const getLocalizedSunTimes = (sunrise: number, sunset: number, timezone?: string | null) => {
+  return {
+    sunrise: formatTimeWithTimezone(sunrise, timezone),
+    sunset: formatTimeWithTimezone(sunset, timezone),
+  }
+}
+
 export const getWeatherAdvice = (weather: CurrentWeather): string[] => {
   const advice: string[] = []
 

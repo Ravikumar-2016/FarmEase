@@ -256,6 +256,7 @@ export async function GET(request: NextRequest) {
           // Transform WeatherAPI data to our format
           const transformedData = {
             source: "weatherapi",
+            timezone: weatherApiData.location.tz_id,
             current: {
               temp: weatherApiData.current.temp_c,
               feels_like: weatherApiData.current.feelslike_c,
@@ -272,14 +273,11 @@ export async function GET(request: NextRequest) {
                   icon: weatherApiData.current.condition.icon.replace("64x64", "128x128"),
                 },
               ],
-              sunrise: convertTimeToEpoch(
-                weatherApiData.forecast.forecastday[0].astro.sunrise,
-                weatherApiData.forecast.forecastday[0].date,
-              ),
-              sunset: convertTimeToEpoch(
-                weatherApiData.forecast.forecastday[0].astro.sunset,
-                weatherApiData.forecast.forecastday[0].date,
-              ),
+              // WeatherAPI provides local time strings directly - store as strings
+              sunrise_time: weatherApiData.forecast.forecastday[0].astro.sunrise,
+              sunset_time: weatherApiData.forecast.forecastday[0].astro.sunset,
+              sunrise: 0, // Placeholder for compatibility
+              sunset: 0, // Placeholder for compatibility
             },
             hourly: weatherApiData.forecast.forecastday.flatMap((day) =>
               day.hour
@@ -321,14 +319,19 @@ export async function GET(request: NextRequest) {
               pop: day.day.daily_chance_of_rain / 100,
               humidity: day.day.avghumidity,
               wind_speed: day.day.maxwind_kph / 3.6, // Convert to m/s
-              sunrise: convertTimeToEpoch(day.astro.sunrise, day.date),
-              sunset: convertTimeToEpoch(day.astro.sunset, day.date),
+              // WeatherAPI provides accurate local time strings directly
+              sunrise_time: day.astro.sunrise,
+              sunset_time: day.astro.sunset,
+              sunrise: 0, // Placeholder for compatibility
+              sunset: 0, // Placeholder for compatibility
               uv: day.day.uv,
+              source: "weatherapi", // Mark as WeatherAPI source
             })),
             location: {
               name: weatherApiData.location.name,
               country: weatherApiData.location.country,
               region: weatherApiData.location.region,
+              timezone: weatherApiData.location.tz_id,
             },
           }
 
@@ -339,11 +342,11 @@ export async function GET(request: NextRequest) {
               const openWeatherData = await getOpenWeatherMapData(location!, OPENWEATHER_API_KEY)
 
               if (openWeatherData) {
-                // Add days 4 and 5 from OpenWeatherMap
+                // Add days 4 and 5 from OpenWeatherMap with UTC times
                 const additionalDays = openWeatherData.daily.slice(3, 5).map((day) => ({
                   ...day,
-                  uv: 0, // Add default UV value
-                  source: "openweathermap",
+                  uv: 0, // Add default UV value for compatibility
+                  source: "openweathermap", // Mark as OpenWeatherMap source
                 }))
                 transformedData.daily = [...transformedData.daily, ...additionalDays]
               }
@@ -391,6 +394,124 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Helper function to convert OpenWeatherMap UTC time to local time (from your working example)
+function toLocalTime(utcSeconds: number, timezoneOffsetSeconds: number): string {
+  // Get time in milliseconds and adjust to location's local time
+  const date = new Date((utcSeconds + timezoneOffsetSeconds) * 1000)
+  const hours = date.getUTCHours().toString().padStart(2, "0")
+  const minutes = date.getUTCMinutes().toString().padStart(2, "0")
+  return `${hours}:${minutes}`
+}
+
+// Helper function to convert 24-hour to 12-hour format
+function to12Hour(timeStr: string): string {
+  const [hour, minute] = timeStr.split(":").map(Number); // Changed to const
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
+}
+
+// Helper function to format UTC time for display
+function formatUTCTime(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+  });
+}
+
+// Helper function to get wind direction
+function getWindDirection(degrees: number): string {
+  const directions = [
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+  ];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+}
+
+// Helper function to process daily forecast from OpenWeatherMap
+function getDailyForecast(forecastList: OpenWeatherMapForecastItem[]) { // Removed unused timezone
+  const dailyData: Record<string, DailyData> = {};
+
+  forecastList.forEach((item) => {
+    const date = new Date(item.dt * 1000).toDateString();
+
+    if (!dailyData[date]) {
+      dailyData[date] = {
+        dt: item.dt,
+        temps: [],
+        weather: item.weather[0],
+        pop: item.pop || 0,
+        humidity: item.main.humidity,
+        wind_speed: item.wind?.speed || 0,
+        sunrise: 0,
+        sunset: 0,
+        hourly: [],
+      };
+    }
+
+    dailyData[date].hourly.push({
+      dt: item.dt,
+      temp: item.main.temp,
+      weather: item.weather[0],
+      pop: item.pop || 0,
+      humidity: item.main.humidity,
+      wind_speed: item.wind?.speed || 0,
+    });
+
+    dailyData[date].temps.push(item.main.temp);
+    if (item.pop > dailyData[date].pop) {
+      dailyData[date].pop = item.pop;
+    }
+
+    dailyData[date].humidity = Math.round(
+      (dailyData[date].humidity + item.main.humidity) / 2
+    );
+
+    if (item.wind?.speed > dailyData[date].wind_speed) {
+      dailyData[date].wind_speed = item.wind.speed;
+    }
+  });
+
+  return Object.values(dailyData)
+    .slice(0, 5)
+    .map((day) => { // Removed unused index parameter
+      const dayTimestamp = day.dt;
+      const dayStart = Math.floor(dayTimestamp / 86400) * 86400;
+      const sunriseUTC = dayStart + 6 * 3600 // 6:00 AM UTC
+      const sunsetUTC = dayStart + 18.5 * 3600 // 6:30 PM UTC
+
+      return {
+        dt: day.dt,
+        temp: {
+          min: Math.min(...day.temps),
+          max: Math.max(...day.temps),
+        },
+        weather: [
+          {
+            ...day.weather,
+            icon: `https://openweathermap.org/img/wn/${day.weather.icon}@2x.png`,
+          },
+        ],
+        pop: day.pop,
+        humidity: day.humidity,
+        wind_speed: day.wind_speed,
+        sunrise: sunriseUTC,
+        sunset: sunsetUTC,
+        // For OpenWeatherMap future days, display UTC times with clear labeling
+        sunrise_time: formatUTCTime(sunriseUTC),
+        sunset_time: formatUTCTime(sunsetUTC),
+        sunrise_utc: true, // Flag to indicate UTC time
+        sunset_utc: true, // Flag to indicate UTC time
+        hourly: day.hourly,
+        source: "openweathermap",
+      }
+    })
+}
+
 // Helper function to get OpenWeatherMap data
 async function getOpenWeatherMapData(location: string, apiKey: string) {
   try {
@@ -428,7 +549,27 @@ async function getOpenWeatherMapData(location: string, apiKey: string) {
       return itemDate < dayAfterTomorrow
     })
 
+    // Convert sunrise/sunset to local time using your working method
+    const sunriseLocal = toLocalTime(currentData.sys.sunrise, currentData.timezone)
+    const sunsetLocal = toLocalTime(currentData.sys.sunset, currentData.timezone)
+
+    // Get daily forecast with UTC times for future days
+    const dailyForecast = getDailyForecast(forecastData.list)
+
+    // Override today's sunrise/sunset with actual data from current weather (local time)
+    if (dailyForecast.length > 0) {
+      dailyForecast[0].sunrise = currentData.sys.sunrise
+      dailyForecast[0].sunset = currentData.sys.sunset
+      dailyForecast[0].sunrise_time = to12Hour(sunriseLocal)
+      dailyForecast[0].sunset_time = to12Hour(sunsetLocal)
+      dailyForecast[0].sunrise_utc = false // Today uses local time
+      dailyForecast[0].sunset_utc = false // Today uses local time
+      dailyForecast[0].source = "openweathermap"
+    }
+
     return {
+      source: "openweathermap",
+      timezone: currentData.timezone,
       current: {
         temp: currentData.main.temp,
         feels_like: currentData.main.feels_like,
@@ -447,6 +588,9 @@ async function getOpenWeatherMapData(location: string, apiKey: string) {
         ],
         sunrise: currentData.sys.sunrise,
         sunset: currentData.sys.sunset,
+        // Add formatted time strings for OpenWeatherMap
+        sunrise_time: to12Hour(sunriseLocal),
+        sunset_time: to12Hour(sunsetLocal),
       },
       hourly: filteredHourly.map((item) => ({
         dt: item.dt,
@@ -463,7 +607,7 @@ async function getOpenWeatherMapData(location: string, apiKey: string) {
         wind_speed: item.wind?.speed || 0,
         wind_deg: item.wind?.deg || 0,
       })),
-      daily: getDailyForecast(forecastData.list),
+      daily: dailyForecast,
       location: {
         name: currentData.name,
         country: currentData.sys.country,
@@ -473,112 +617,4 @@ async function getOpenWeatherMapData(location: string, apiKey: string) {
     console.error("OpenWeatherMap error:", error)
     return null
   }
-}
-
-// Helper function to convert time string to epoch
-function convertTimeToEpoch(timeStr: string, dateStr: string): number {
-  const [time, period] = timeStr.split(" ")
-  let [hours] = time.split(":").map(Number)
-  const minutes = parseInt(time.split(":")[1], 10)
-
-  if (period === "PM" && hours !== 12) {
-    hours += 12
-  } else if (period === "AM" && hours === 12) {
-    hours = 0
-  }
-
-  const date = new Date(dateStr)
-  date.setHours(hours, minutes, 0, 0)
-  return Math.floor(date.getTime() / 1000)
-}
-
-// Helper function to get wind direction
-function getWindDirection(degrees: number): string {
-  const directions = [
-    "N",
-    "NNE",
-    "NE",
-    "ENE",
-    "E",
-    "ESE",
-    "SE",
-    "SSE",
-    "S",
-    "SSW",
-    "SW",
-    "WSW",
-    "W",
-    "WNW",
-    "NW",
-    "NNW",
-  ]
-  const index = Math.round(degrees / 22.5) % 16
-  return directions[index]
-}
-
-// Helper function to process daily forecast from OpenWeatherMap
-function getDailyForecast(forecastList: OpenWeatherMapForecastItem[]) {
-  const dailyData: Record<string, DailyData> = {}
-
-  forecastList.forEach((item) => {
-    const date = new Date(item.dt * 1000).toDateString()
-
-    if (!dailyData[date]) {
-      dailyData[date] = {
-        dt: item.dt,
-        temps: [],
-        weather: item.weather[0],
-        pop: item.pop || 0,
-        humidity: item.main.humidity,
-        wind_speed: item.wind?.speed || 0,
-        sunrise: 0,
-        sunset: 0,
-        hourly: [],
-      }
-    }
-
-    // Add this hour to the day's hourly data
-    dailyData[date].hourly.push({
-      dt: item.dt,
-      temp: item.main.temp,
-      weather: item.weather[0],
-      pop: item.pop || 0,
-      humidity: item.main.humidity,
-      wind_speed: item.wind?.speed || 0,
-    })
-
-    dailyData[date].temps.push(item.main.temp)
-    if (item.pop > dailyData[date].pop) {
-      dailyData[date].pop = item.pop
-    }
-
-    dailyData[date].humidity = Math.round((dailyData[date].humidity + item.main.humidity) / 2)
-
-    if (item.wind?.speed > dailyData[date].wind_speed) {
-      dailyData[date].wind_speed = item.wind.speed
-    }
-  })
-
-  return Object.values(dailyData)
-    .slice(0, 5)
-    .map((day) => ({
-      dt: day.dt,
-      temp: {
-        min: Math.min(...day.temps),
-        max: Math.max(...day.temps),
-      },
-      weather: [
-        {
-          ...day.weather,
-          icon: `https://openweathermap.org/img/wn/${day.weather.icon}@2x.png`,
-        },
-      ],
-      pop: day.pop,
-      humidity: day.humidity,
-      wind_speed: day.wind_speed,
-      sunrise: day.dt + 6 * 60 * 60, // Approximate sunrise (6 AM)
-      sunset: day.dt + 18 * 60 * 60, // Approximate sunset (6 PM)
-      hourly: day.hourly,
-      source: "openweathermap",
-    }))
 }

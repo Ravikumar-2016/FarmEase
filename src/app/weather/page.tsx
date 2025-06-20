@@ -36,6 +36,7 @@ import {
 
 interface WeatherData {
   source?: string
+  timezone?: string | number | null
   current: {
     temp: number
     feels_like: number
@@ -52,6 +53,8 @@ interface WeatherData {
     }>
     sunrise: number
     sunset: number
+    sunrise_time?: string // Formatted time string
+    sunset_time?: string // Formatted time string
   }
   hourly: Array<{
     dt: number
@@ -83,6 +86,10 @@ interface WeatherData {
     wind_speed: number
     sunrise: number
     sunset: number
+    sunrise_time?: string // Formatted time string
+    sunset_time?: string // Formatted time string
+    sunrise_utc?: boolean // Flag to indicate if time is in UTC
+    sunset_utc?: boolean // Flag to indicate if time is in UTC
     uv?: number
     source?: string
     hourly?: Array<{
@@ -102,6 +109,7 @@ interface WeatherData {
     name: string
     country: string
     region?: string
+    timezone?: string
   }
 }
 
@@ -110,7 +118,6 @@ interface LocationData {
   zipcode: string
   state: string
 }
-
 
 export default function WeatherPage() {
   const router = useRouter()
@@ -435,78 +442,100 @@ export default function WeatherPage() {
   // Get distinct background colors for each day card
   const getDayCardBackground = (index: number) => {
     const backgrounds = [
-      "bg-blue-50 border-blue-100", // Day 1 - Light blue
-      "bg-green-50 border-green-100", // Day 2 - Light green
-      "bg-purple-50 border-purple-100", // Day 3 - Light purple
-      "bg-orange-50 border-orange-100", // Day 4 - Light orange
-      "bg-pink-50 border-pink-100", // Day 5 - Light pink
+      "bg-sky-100 border-sky-300", // Day 1 - Soothing blue
+      "bg-emerald-100 border-emerald-300", // Day 2 - Fresh green
+      "bg-indigo-100 border-indigo-300", // Day 3 - Soft purple
+      "bg-amber-100 border-amber-300", // Day 4 - Warm orange
+      "bg-rose-100 border-rose-300", // Day 5 - Gentle pink
     ]
     return backgrounds[index % backgrounds.length]
   }
 
+  // Helper function to render sunrise/sunset time with UTC badge if needed
+  const renderSunTime = (
+    time: string | undefined,
+    isUTC: boolean | undefined,
+    icon: React.ReactNode,
+    isMobile = false,
+  ) => {
+    if (!time) return null
+
+    return (
+      <div className="flex items-center gap-2">
+        {icon}
+        <div className="min-w-0 flex-1">
+          <div className={`font-semibold text-gray-900 ${isMobile ? "flex flex-col" : "flex items-center gap-1"}`}>
+            <span className="truncate">{time}</span>
+            {isUTC && (
+              <Badge
+                variant="secondary"
+                className={`bg-gray-100 text-gray-600 text-xs px-1 py-0 h-4 ${isMobile ? "self-start mt-0.5" : ""}`}
+              >
+                UTC
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-6 max-w-md px-4">
-        {/* Animated Weather Illustration */}
-        <div className="relative w-40 h-40">
-          {/* Sun */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-            <div className="w-16 h-16 bg-yellow-300 rounded-full shadow-lg animate-pulse" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-4 h-2 bg-yellow-400 rounded-full"
-                  style={{
-                    transform: `rotate(${i * 45}deg) translateX(24px)`,
-                  }}
-                />
-              ))}
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 max-w-md px-4">
+          {/* Animated Weather Illustration */}
+          <div className="relative w-40 h-40">
+            {/* Sun */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+              <div className="w-16 h-16 bg-yellow-300 rounded-full shadow-lg animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-4 h-2 bg-yellow-400 rounded-full"
+                    style={{
+                      transform: `rotate(${i * 45}deg) translateX(24px)`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Cloud */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+              <div className="relative">
+                <div className="w-32 h-12 bg-white rounded-full shadow-md" />
+                <div className="absolute -top-4 left-4 w-10 h-10 bg-white rounded-full" />
+                <div className="absolute -top-4 right-4 w-8 h-8 bg-white rounded-full" />
+                {/* Falling rain animation */}
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute bottom-0 w-1 h-6 bg-blue-300 rounded-full animate-rain"
+                    style={{
+                      left: `${10 + i * 20}px`,
+                      animationDelay: `${i * 0.2}s`,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-          
-          {/* Cloud */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="relative">
-              <div className="w-32 h-12 bg-white rounded-full shadow-md" />
-              <div className="absolute -top-4 left-4 w-10 h-10 bg-white rounded-full" />
-              <div className="absolute -top-4 right-4 w-8 h-8 bg-white rounded-full" />
-              {/* Falling rain animation */}
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute bottom-0 w-1 h-6 bg-blue-300 rounded-full animate-rain"
-                  style={{
-                    left: `${10 + i * 20}px`,
-                    animationDelay: `${i * 0.2}s`,
-                  }}
-                />
-              ))}
-            </div>
+
+          {/* Loading Text */}
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800">Fetching Weather Data</h3>
+            <p className="text-gray-500 text-sm">Gathering forecast for your location...</p>
           </div>
-        </div>
 
-        {/* Loading Text */}
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Fetching Weather Data
-          </h3>
-          <p className="text-gray-500 text-sm">
-            Gathering forecast for your location...
-          </p>
-        </div>
+          {/* Animated Progress */}
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-blue-500 h-2 rounded-full animate-progress" style={{ width: "0%" }} />
+          </div>
 
-        {/* Animated Progress */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-500 h-2 rounded-full animate-progress"
-            style={{ width: '0%' }}
-          />
-        </div>
-
-        {/* Custom Animations */}
-        <style jsx>{`
+          {/* Custom Animations */}
+          <style jsx>{`
           @keyframes rain {
             0% { transform: translateY(0) scaleY(0); opacity: 0; }
             50% { opacity: 1; }
@@ -524,10 +553,10 @@ export default function WeatherPage() {
             animation: progress 2s ease-in-out infinite;
           }
         `}</style>
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -645,17 +674,22 @@ export default function WeatherPage() {
 
           {/* Smart Suggestions */}
           {weatherData && getSmartSuggestions().length > 0 && (
-            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 shadow-sm">
+            <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 shadow-sm hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sun className="h-5 w-5 text-yellow-600" />
-                  Farming Suggestions
+                <CardTitle className="text-lg flex items-center gap-2 font-medium text-slate-800">
+                  <Sun className="h-5 w-5 text-amber-500" />
+                  <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                    Farming Suggestions
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {getSmartSuggestions().map((suggestion, index) => (
-                    <Badge key={index} variant="secondary" className="bg-white/70">
+                    <Badge
+                      key={index}
+                      className="bg-white border border-blue-200/80 text-slate-700 hover:bg-blue-50/90 hover:text-blue-700 transition-colors shadow-xs"
+                    >
                       {suggestion}
                     </Badge>
                   ))}
@@ -667,30 +701,32 @@ export default function WeatherPage() {
           {weatherData && (
             <>
               {/* Current Weather */}
-              <Card className="shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
+              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-gray-100 border border-gray-200/80 hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm opacity-90">
+                      <MapPin className="h-4 w-4 text-sky-600" />
+                      <span className="text-sm font-medium text-gray-700">
                         {weatherData.location?.name ||
                           (locationData ? `${locationData.area}, ${locationData.state}` : "Current Location")}
                         {weatherData.location?.region && `, ${weatherData.location.region}`}
                       </span>
                     </div>
-                    <span className="text-sm opacity-90">Now</span>
+                    <span className="text-sm font-medium text-gray-500">Now</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-6xl font-bold mb-2">{Math.round(weatherData.current.temp)}°C</div>
-                      <div className="text-lg opacity-90 capitalize mb-1">
+                      <div className="text-6xl font-bold mb-2 text-gray-900">
+                        {Math.round(weatherData.current.temp)}°C
+                      </div>
+                      <div className="text-lg font-medium text-gray-700 capitalize mb-1">
                         {weatherData.current.weather[0].description}
                       </div>
-                      <div className="text-sm opacity-75">
+                      <div className="text-sm text-gray-600">
                         Feels like {Math.round(weatherData.current.feels_like)}°C
                       </div>
-                      <div className="text-sm opacity-75 mt-2">
+                      <div className="text-sm text-gray-600 mt-2">
                         High: {Math.round(weatherData.daily[0]?.temp.max || weatherData.current.temp)}° • Low:{" "}
                         {Math.round(weatherData.daily[0]?.temp.min || weatherData.current.temp)}°
                       </div>
@@ -699,14 +735,267 @@ export default function WeatherPage() {
                       {renderWeatherIcon(
                         weatherData.current.weather[0].icon,
                         weatherData.current.weather[0].description,
-                        "h-16 w-16",
+                        "h-20 w-20 text-sky-500",
                       )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Current Conditions */}
+              {/* Sunrise & Sunset */}
+              <Card className="bg-gradient-to-r from-orange-50 to-pink-50 border-orange-100 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    Sunrise & Sunset
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <Sunrise className="h-6 w-6 text-orange-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Sunrise</div>
+                        <div className="text-lg font-semibold text-gray-900">
+                          {weatherData.current.sunrise_time || formatTime(weatherData.current.sunrise)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Sunset className="h-6 w-6 text-pink-500" />
+                      <div>
+                        <div className="text-sm text-gray-600">Sunset</div>
+                        <div className="text-lg font-semibold text-gray-900">
+                          {weatherData.current.sunset_time || formatTime(weatherData.current.sunset)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Next 24 Hours Forecast */}
+              <Card className="bg-indigo-50 border-indigo-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <Thermometer className="h-5 w-5 text-orange-600" />
+                    Next 24 Hours Forecast
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-3 pb-2 min-w-max">
+                      {getNext24Hours().map((hour, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col items-center min-w-[80px] p-3 rounded-lg bg-white border border-indigo-100 hover:shadow-sm transition-all duration-200"
+                        >
+                          <div className="text-xs text-gray-600 mb-2 font-medium">
+                            {index === 0 ? "Now" : formatTime(hour.dt)}
+                          </div>
+                          <div className="mb-2">
+                            {renderWeatherIcon(hour.weather[0].icon, hour.weather[0].description, "h-14 w-14")}
+                          </div>
+                          <div className="text-lg font-bold text-gray-900 mb-1">{Math.round(hour.temp)}°</div>
+                          {hour.pop > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-blue-600">
+                              <Umbrella className="h-6 w-6" />
+                              {Math.round(hour.pop * 100)}%
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 5-Day Forecast */}
+              <Card className="bg-emerald-50 border-emerald-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <Eye className="h-5 w-5 text-blue-600" />
+                    {`${weatherData.daily.length}-Day Weather Forecast`}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {weatherData.daily.slice(0, 5).map((day, index) => (
+                      <div key={index} className={`rounded-lg border overflow-hidden ${getDayCardBackground(index)}`}>
+                        <div
+                          className="flex items-center p-4 hover:bg-white/50 transition-colors cursor-pointer min-h-[80px]"
+                          onClick={() => setExpandedDay(expandedDay === index ? null : index)}
+                        >
+                          {/* Left side - Date and Weather */}
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-24 sm:w-32 flex-shrink-0">
+                              <div className="font-semibold text-gray-900 text-sm sm:text-base">
+                                {formatShortDate(day.dt)}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-600 leading-tight">
+                                {day.weather[0].description}
+                              </div>
+                            </div>
+
+                            {/* Weather Icon */}
+                            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                              {renderWeatherIcon(day.weather[0].icon, day.weather[0].description, "h-14 w-14")}
+                            </div>
+                          </div>
+
+                          {/* Right side - Temperature and Controls */}
+                          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                            {/* Precipitation - consistent umbrella size */}
+                            {day.pop > 0 && (
+                              <div className="hidden sm:flex items-center gap-1 text-blue-600 w-12 justify-center">
+                                <Umbrella className="h-10 w-10" />
+                                <span className="text-xs">{Math.round(day.pop * 100)}%</span>
+                              </div>
+                            )}
+
+                            {/* Temperature */}
+                            <div className="text-right w-16 sm:w-20">
+                              <div className="flex items-center justify-end gap-1">
+                                <span className="font-bold text-lg text-gray-900">{Math.round(day.temp.max)}°</span>
+                                <span className="text-gray-500 text-sm">/{Math.round(day.temp.min)}°</span>
+                              </div>
+                              {/* Mobile precipitation - same umbrella size */}
+                              {day.pop > 0 && (
+                                <div className="sm:hidden flex items-center justify-end gap-1 text-xs text-blue-600 mt-1">
+                                  <Umbrella className="h-10 w-10" />
+                                  {Math.round(day.pop * 100)}%
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Expand button */}
+                            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                              {expandedDay === index ? (
+                                <ChevronUp className="h-5 w-5 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-5 w-5 text-gray-400" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Daily Summary - Always visible */}
+                        <div className="border-t bg-white/60 p-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="flex items-center gap-2">
+                              <Wind className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-xs text-gray-600">Max Wind</div>
+                                <div className="font-semibold text-gray-900 truncate">
+                                  {Math.round(day.wind_speed)} m/s
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Droplets className="h-4 w-4 text-cyan-600 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-xs text-gray-600">Humidity</div>
+                                <div className="font-semibold text-gray-900 truncate">{day.humidity}%</div>
+                              </div>
+                            </div>
+
+                            {/* Mobile-optimized sunrise/sunset layout */}
+                            <div className="md:hidden col-span-2">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <div className="text-xs text-gray-600 mb-1">Sunrise</div>
+                                  {renderSunTime(
+                                    day.sunrise_time,
+                                    day.sunrise_utc,
+                                    <Sunrise className="h-4 w-4 text-orange-600 flex-shrink-0" />,
+                                    true,
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-600 mb-1">Sunset</div>
+                                  {renderSunTime(
+                                    day.sunset_time,
+                                    day.sunset_utc,
+                                    <Sunset className="h-4 w-4 text-pink-600 flex-shrink-0" />,
+                                    true,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Desktop sunrise/sunset layout */}
+                            <div className="hidden md:flex items-center gap-2">
+                              <Sunrise className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-xs text-gray-600">Sunrise</div>
+                                {renderSunTime(day.sunrise_time, day.sunrise_utc, null)}
+                              </div>
+                            </div>
+                            <div className="hidden md:flex items-center gap-2">
+                              <Sunset className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-xs text-gray-600">Sunset</div>
+                                {renderSunTime(day.sunset_time, day.sunset_utc, null)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Hourly Details - Only show if expanded */}
+                        {expandedDay === index && (
+                          <div className="mt-6 pt-4 border-t border-gray-200">
+                            <h4 className="font-semibold mb-3 text-gray-900">Temperature Details</h4>
+                            <div className="overflow-x-auto">
+                              <div className="flex gap-2 pb-2 min-w-max">
+                                {getDayHourlyData(index).map((hour, hourIndex) => (
+                                  <div
+                                    key={hourIndex}
+                                    className="flex flex-col items-center min-w-[70px] p-2 rounded-lg bg-white border border-gray-100"
+                                  >
+                                    <div className="text-xs text-gray-600 mb-1">{formatTime(hour.dt)}</div>
+                                    {renderWeatherIcon(
+                                      Array.isArray(hour.weather) ? hour.weather[0]?.icon : hour.weather.icon,
+                                      Array.isArray(hour.weather)
+                                        ? hour.weather[0]?.description
+                                        : hour.weather.description,
+                                      "h-14 w-14",
+                                    )}
+                                    <div className="font-semibold text-sm text-gray-900 mt-1">
+                                      {Math.round(hour.temp)}°
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Show UTC note if any times are UTC */}
+                          {weatherData.daily.some((day) => day.sunrise_utc || day.sunset_utc) && (
+                            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-xs text-amber-800">
+                                  <span className="font-medium">Note:</span> Times marked with{" "}
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-gray-100 text-gray-600 text-xs px-1 py-0 h-4 mx-1"
+                                  >
+                                    UTC
+                                  </Badge>
+                                  are approximate values from OpenWeatherMap and may not reflect actual local
+                                  sunrise/sunset times.
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                  </div>
+                </CardContent>
+              </Card>
+
+                {/* Current Conditions */}
               <Card className="shadow-sm border-gray-100">
                 <CardHeader>
                   <CardTitle className="text-lg text-gray-900">Current Conditions</CardTitle>
@@ -763,214 +1052,6 @@ export default function WeatherPage() {
                         {getUVLevel(weatherData.current.uvi || 0).level}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Sunrise & Sunset */}
-              <Card className="bg-gradient-to-r from-orange-50 to-pink-50 border-orange-100 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Sunrise className="h-5 w-5 text-orange-600" />
-                    Sunrise & Sunset
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <Sunrise className="h-6 w-6 text-orange-500" />
-                      <div>
-                        <div className="text-sm text-gray-600">Sunrise</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {formatTime(weatherData.current.sunrise)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Sunset className="h-6 w-6 text-pink-500" />
-                      <div>
-                        <div className="text-sm text-gray-600">Sunset</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {formatTime(weatherData.current.sunset)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Next 24 Hours Forecast */}
-              <Card className="bg-indigo-50 border-indigo-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Thermometer className="h-5 w-5 text-orange-600" />
-                    Next 24 Hours Forecast
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-3 pb-2 min-w-max">
-                      {getNext24Hours().map((hour, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col items-center min-w-[80px] p-3 rounded-lg bg-white border border-indigo-100 hover:shadow-sm transition-all duration-200"
-                        >
-                          <div className="text-xs text-gray-600 mb-2 font-medium">
-                            {index === 0 ? "Now" : formatTime(hour.dt)}
-                          </div>
-                          <div className="mb-2">
-                            {renderWeatherIcon(hour.weather[0].icon, hour.weather[0].description, "h-6 w-6")}
-                          </div>
-                          <div className="text-lg font-bold text-gray-900 mb-1">{Math.round(hour.temp)}°</div>
-                          {hour.pop > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-blue-600">
-                              <Umbrella className="h-3 w-3" />
-                              {Math.round(hour.pop * 100)}%
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* 5-Day Forecast */}
-              <Card className="bg-emerald-50 border-emerald-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Eye className="h-5 w-5 text-blue-600" />
-                      {`${weatherData.daily.length}-Day Weather Forecast`}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {weatherData.daily.slice(0, 5).map((day, index) => (
-                      <div key={index} className={`rounded-lg border overflow-hidden ${getDayCardBackground(index)}`}>
-                        <div
-                          className="flex items-center p-4 hover:bg-white/50 transition-colors cursor-pointer min-h-[80px]"
-                          onClick={() => setExpandedDay(expandedDay === index ? null : index)}
-                        >
-                          {/* Left side - Date and Weather with fixed width */}
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-24 sm:w-32 flex-shrink-0">
-                              <div className="font-semibold text-gray-900 text-sm sm:text-base">
-                                {formatShortDate(day.dt)}
-                              </div>
-                              <div className="text-xs sm:text-sm text-gray-600 leading-tight break-words">
-                                {day.weather[0].description}
-                              </div>
-                            </div>
-
-                            {/* Weather Icon - fixed size */}
-                            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                              {renderWeatherIcon(day.weather[0].icon, day.weather[0].description, "h-8 w-8")}
-                            </div>
-                          </div>
-
-                          {/* Right side - Temperature and Controls with fixed layout */}
-                          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                            {/* Precipitation - hidden on very small screens */}
-                            {day.pop > 0 && (
-                              <div className="hidden sm:flex items-center gap-1 text-blue-600 w-12 justify-center">
-                                <Umbrella className="h-3 w-3" />
-                                <span className="text-xs">{Math.round(day.pop * 100)}%</span>
-                              </div>
-                            )}
-
-                            {/* Temperature - fixed width */}
-                            <div className="text-right w-16 sm:w-20">
-                              <div className="flex items-center justify-end gap-1">
-                                <span className="font-bold text-lg text-gray-900">{Math.round(day.temp.max)}°</span>
-                                <span className="text-gray-500 text-sm">/{Math.round(day.temp.min)}°</span>
-                              </div>
-                              {/* Mobile precipitation */}
-                              {day.pop > 0 && (
-                                <div className="sm:hidden flex items-center justify-end gap-1 text-xs text-blue-600 mt-1">
-                                  <Umbrella className="h-3 w-3" />
-                                  {Math.round(day.pop * 100)}%
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Expand button - fixed size */}
-                            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                              {expandedDay === index ? (
-                                <ChevronUp className="h-5 w-5 text-gray-400" />
-                              ) : (
-                                <ChevronDown className="h-5 w-5 text-gray-400" />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Daily Summary - Always visible */}
-                        <div className="border-t bg-white/60 p-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-2">
-                              <Wind className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                              <div className="min-w-0">
-                                <div className="text-xs text-gray-600">Max Wind</div>
-                                <div className="font-semibold text-gray-900 truncate">
-                                  {Math.round(day.wind_speed)} m/s
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-4 w-4 text-cyan-600 flex-shrink-0" />
-                              <div className="min-w-0">
-                                <div className="text-xs text-gray-600">Humidity</div>
-                                <div className="font-semibold text-gray-900 truncate">{day.humidity}%</div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Sunrise className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                              <div className="min-w-0">
-                                <div className="text-xs text-gray-600">Sunrise</div>
-                                <div className="font-semibold text-gray-900 truncate">{formatTime(day.sunrise)}</div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Sunset className="h-4 w-4 text-pink-600 flex-shrink-0" />
-                              <div className="min-w-0">
-                                <div className="text-xs text-gray-600">Sunset</div>
-                                <div className="font-semibold text-gray-900 truncate">{formatTime(day.sunset)}</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Hourly Details - Only show if expanded */}
-                          {expandedDay === index && (
-                            <div className="mt-6 pt-4 border-t border-gray-200">
-                              <h4 className="font-semibold mb-3 text-gray-900">Temperature Details</h4>
-                              <div className="overflow-x-auto">
-                                <div className="flex gap-2 pb-2 min-w-max">
-                                  {getDayHourlyData(index).map((hour, hourIndex) => (
-                                    <div
-                                      key={hourIndex}
-                                      className="flex flex-col items-center min-w-[70px] p-2 rounded-lg bg-white border border-gray-100"
-                                    >
-                                      <div className="text-xs text-gray-600 mb-1">{formatTime(hour.dt)}</div>
-                                      {renderWeatherIcon(
-                                        Array.isArray(hour.weather) ? hour.weather[0]?.icon : hour.weather.icon,
-                                        Array.isArray(hour.weather)
-                                          ? hour.weather[0]?.description
-                                          : hour.weather.description,
-                                        "h-5 w-5",
-                                      )}
-                                      <div className="font-semibold text-sm text-gray-900 mt-1">
-                                        {Math.round(hour.temp)}°
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </CardContent>
               </Card>
