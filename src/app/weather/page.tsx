@@ -90,6 +90,8 @@ interface WeatherData {
     sunset_time?: string // Formatted time string
     sunrise_utc?: boolean // Flag to indicate if time is in UTC
     sunset_utc?: boolean // Flag to indicate if time is in UTC
+    sunrise_estimated?: boolean // Flag to indicate if time is estimated
+    sunset_estimated?: boolean // Flag to indicate if time is estimated
     uv?: number
     source?: string
     hourly?: Array<{
@@ -451,14 +453,19 @@ export default function WeatherPage() {
     return backgrounds[index % backgrounds.length]
   }
 
-  // Helper function to render sunrise/sunset time with UTC badge if needed
+  // Helper function to render sunrise/sunset time with UTC or estimated badge if needed
   const renderSunTime = (
     time: string | undefined,
     isUTC: boolean | undefined,
+    isEstimated: boolean | undefined,
     icon: React.ReactNode,
     isMobile = false,
   ) => {
     if (!time) return null
+
+    const showBadge = isUTC || isEstimated
+    const badgeText = isEstimated ? "EST" : "UTC"
+    const badgeColor = isEstimated ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
 
     return (
       <div className="flex items-center gap-2">
@@ -466,12 +473,12 @@ export default function WeatherPage() {
         <div className="min-w-0 flex-1">
           <div className={`font-semibold text-gray-900 ${isMobile ? "flex flex-col" : "flex items-center gap-1"}`}>
             <span className="truncate">{time}</span>
-            {isUTC && (
+            {showBadge && (
               <Badge
                 variant="secondary"
-                className={`bg-gray-100 text-gray-600 text-xs px-1 py-0 h-4 ${isMobile ? "self-start mt-0.5" : ""}`}
+                className={`${badgeColor} text-xs px-1 py-0 h-4 ${isMobile ? "self-start mt-0.5" : ""}`}
               >
-                UTC
+                {badgeText}
               </Badge>
             )}
           </div>
@@ -545,6 +552,7 @@ export default function WeatherPage() {
             animation: rain 1.5s linear infinite;
           }
           @keyframes progress {
+            0% { width: 0%; }
             0% { width: 0%; }
             50% { width: 70%; }
             100% { width: 100%; }
@@ -745,9 +753,7 @@ export default function WeatherPage() {
               {/* Sunrise & Sunset */}
               <Card className="bg-gradient-to-r from-orange-50 to-pink-50 border-orange-100 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    Sunrise & Sunset
-                  </CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">Sunrise & Sunset</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between items-center">
@@ -907,6 +913,7 @@ export default function WeatherPage() {
                                   {renderSunTime(
                                     day.sunrise_time,
                                     day.sunrise_utc,
+                                    day.sunrise_estimated,
                                     <Sunrise className="h-4 w-4 text-orange-600 flex-shrink-0" />,
                                     true,
                                   )}
@@ -916,6 +923,7 @@ export default function WeatherPage() {
                                   {renderSunTime(
                                     day.sunset_time,
                                     day.sunset_utc,
+                                    day.sunset_estimated,
                                     <Sunset className="h-4 w-4 text-pink-600 flex-shrink-0" />,
                                     true,
                                   )}
@@ -928,14 +936,14 @@ export default function WeatherPage() {
                               <Sunrise className="h-4 w-4 text-orange-600 flex-shrink-0" />
                               <div className="min-w-0">
                                 <div className="text-xs text-gray-600">Sunrise</div>
-                                {renderSunTime(day.sunrise_time, day.sunrise_utc, null)}
+                                {renderSunTime(day.sunrise_time, day.sunrise_utc, day.sunrise_estimated, null)}
                               </div>
                             </div>
                             <div className="hidden md:flex items-center gap-2">
                               <Sunset className="h-4 w-4 text-pink-600 flex-shrink-0" />
                               <div className="min-w-0">
                                 <div className="text-xs text-gray-600">Sunset</div>
-                                {renderSunTime(day.sunset_time, day.sunset_utc, null)}
+                                {renderSunTime(day.sunset_time, day.sunset_utc, day.sunset_estimated, null)}
                               </div>
                             </div>
                           </div>
@@ -973,29 +981,27 @@ export default function WeatherPage() {
                     ))}
 
                     {/* Show UTC note if any times are UTC */}
-                          {weatherData.daily.some((day) => day.sunrise_utc || day.sunset_utc) && (
-                            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                              <div className="flex items-start gap-2">
-                                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                                <div className="text-xs text-amber-800">
-                                  <span className="font-medium">Note:</span> Times marked with{" "}
-                                  <Badge
-                                    variant="secondary"
-                                    className="bg-gray-100 text-gray-600 text-xs px-1 py-0 h-4 mx-1"
-                                  >
-                                    UTC
-                                  </Badge>
-                                  are approximate values from OpenWeatherMap and may not reflect actual local
-                                  sunrise/sunset times.
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                    {weatherData.daily.some(
+                      (day) => day.sunrise_utc || day.sunset_utc || day.sunrise_estimated || day.sunset_estimated,
+                    ) && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs text-amber-800">
+                            <span className="font-medium">Note:</span> Times marked with 
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-600 text-xs px-1 py-0 h-4 mx-1">
+                              EST
+                            </Badge>
+                             are approximate estimations, derived from typical daily sunrise and sunset drift patterns, based on analysis using data from OpenWeatherMap.
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-                {/* Current Conditions */}
+              {/* Current Conditions */}
               <Card className="shadow-sm border-gray-100">
                 <CardHeader>
                   <CardTitle className="text-lg text-gray-900">Current Conditions</CardTitle>
