@@ -42,7 +42,7 @@ interface WeatherData {
     feels_like: number
     humidity: number
     pressure: number
-    uvi: number
+    uvi?: number;
     wind_speed: number
     wind_deg?: number
     wind_dir?: string
@@ -120,6 +120,83 @@ interface LocationData {
   zipcode: string
   state: string
 }
+
+// Add this right after your imports but before the main component
+const WeatherLoadingScreen = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
+    <div className="flex flex-col items-center gap-6 max-w-md px-4">
+      {/* Animated Weather Illustration */}
+      <div className="relative w-40 h-40">
+        {/* Sun */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+          <div className="w-16 h-16 bg-yellow-300 rounded-full shadow-lg animate-pulse" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-4 h-2 bg-yellow-400 rounded-full"
+                style={{
+                  transform: `rotate(${i * 45}deg) translateX(24px)`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Cloud */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="relative">
+            <div className="w-32 h-12 bg-white rounded-full shadow-md" />
+            <div className="absolute -top-4 left-4 w-10 h-10 bg-white rounded-full" />
+            <div className="absolute -top-4 right-4 w-8 h-8 bg-white rounded-full" />
+            {/* Falling rain animation */}
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute bottom-0 w-1 h-6 bg-blue-300 rounded-full animate-rain"
+                style={{
+                  left: `${10 + i * 20}px`,
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Loading Text */}
+      <div className="text-center space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800">Fetching Weather Data</h3>
+        <p className="text-gray-500 text-sm">Gathering forecast for your location...</p>
+      </div>
+
+      {/* Animated Progress */}
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="bg-blue-500 h-2 rounded-full animate-progress" style={{ width: "0%" }} />
+      </div>
+
+      {/* Custom Animations */}
+      <style jsx>{`
+        @keyframes rain {
+          0% { transform: translateY(0) scaleY(0); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateY(40px) scaleY(1); opacity: 0; }
+        }
+        .animate-rain {
+          animation: rain 1.5s linear infinite;
+        }
+        @keyframes progress {
+          0% { width: 0%; }
+          50% { width: 70%; }
+          100% { width: 100%; }
+        }
+        .animate-progress {
+          animation: progress 2s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  </div>
+);
 
 export default function WeatherPage() {
   const router = useRouter()
@@ -487,84 +564,9 @@ export default function WeatherPage() {
     )
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6 max-w-md px-4">
-          {/* Animated Weather Illustration */}
-          <div className="relative w-40 h-40">
-            {/* Sun */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-              <div className="w-16 h-16 bg-yellow-300 rounded-full shadow-lg animate-pulse" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-4 h-2 bg-yellow-400 rounded-full"
-                    style={{
-                      transform: `rotate(${i * 45}deg) translateX(24px)`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Cloud */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-              <div className="relative">
-                <div className="w-32 h-12 bg-white rounded-full shadow-md" />
-                <div className="absolute -top-4 left-4 w-10 h-10 bg-white rounded-full" />
-                <div className="absolute -top-4 right-4 w-8 h-8 bg-white rounded-full" />
-                {/* Falling rain animation */}
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute bottom-0 w-1 h-6 bg-blue-300 rounded-full animate-rain"
-                    style={{
-                      left: `${10 + i * 20}px`,
-                      animationDelay: `${i * 0.2}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Loading Text */}
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-semibold text-gray-800">Fetching Weather Data</h3>
-            <p className="text-gray-500 text-sm">Gathering forecast for your location...</p>
-          </div>
-
-          {/* Animated Progress */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-500 h-2 rounded-full animate-progress" style={{ width: "0%" }} />
-          </div>
-
-          {/* Custom Animations */}
-          <style jsx>{`
-          @keyframes rain {
-            0% { transform: translateY(0) scaleY(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(40px) scaleY(1); opacity: 0; }
-          }
-          .animate-rain {
-            animation: rain 1.5s linear infinite;
-          }
-          @keyframes progress {
-            0% { width: 0%; }
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
-          }
-          .animate-progress {
-            animation: progress 2s ease-in-out infinite;
-          }
-        `}</style>
-        </div>
-      </div>
-    )
-  }
+  if (loading || isSearching) {
+  return <WeatherLoadingScreen />;
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -1047,17 +1049,26 @@ export default function WeatherPage() {
 
                     {/* UV Index */}
                     <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-700">UV Index</span>
-                        <Sun className="h-6 w-6 text-yellow-600" />
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900 mb-1">
-                        {Math.round(weatherData.current.uvi || 0)}
-                      </div>
-                      <div className={`text-sm ${getUVLevel(weatherData.current.uvi || 0).color}`}>
-                        {getUVLevel(weatherData.current.uvi || 0).level}
-                      </div>
-                    </div>
+  <div className="flex items-center justify-between mb-3">
+    <span className="text-sm font-medium text-gray-700">UV Index</span>
+    <Sun className="h-6 w-6 text-yellow-600" />
+  </div>
+  {weatherData.current.uvi !== undefined ? (
+    <>
+      <div className="text-2xl font-bold text-gray-900 mb-1">
+        {Math.round(weatherData.current.uvi)}
+      </div>
+      <div className={`text-sm ${getUVLevel(weatherData.current.uvi).color}`}>
+        {getUVLevel(weatherData.current.uvi).level}
+      </div>
+    </>
+  ) : (
+    <div className="group relative">
+      <div className="text-2xl font-bold text-gray-900 mb-1">N/A</div>
+      <div className="text-sm text-gray-600">Not available</div>
+    </div>
+  )}
+</div>
                   </div>
                 </CardContent>
               </Card>

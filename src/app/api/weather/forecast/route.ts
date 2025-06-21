@@ -413,6 +413,7 @@ function getDailyForecast(
         sunset_estimated: isEstimated,
         hourly: day.hourly,
         source: "openweathermap",
+        uv: undefined 
       }
     })
 }
@@ -474,7 +475,7 @@ async function getOpenWeatherMapData(location: string, apiKey: string) {
         feels_like: currentData.main.feels_like,
         humidity: currentData.main.humidity,
         pressure: currentData.main.pressure,
-        uvi: 0,
+        uvi: undefined, // OpenWeatherMap does not provide UVI in current weather
         wind_speed: currentData.wind?.speed || 0,
         wind_deg: currentData.wind?.deg || 0,
         wind_dir: getWindDirection(currentData.wind?.deg || 0),
