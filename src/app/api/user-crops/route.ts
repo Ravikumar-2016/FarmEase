@@ -64,26 +64,46 @@ export async function GET(request: NextRequest) {
     // Get username from query parameters
     const { searchParams } = new URL(request.url)
     const username = searchParams.get("username")
+    const uniqueOnly = searchParams.get("unique") === "true"
 
     if (!username) {
       return NextResponse.json({ success: false, error: "Username is required" }, { status: 400 })
     }
 
-    // Fetch all crops for the user
-    const crops = await db
-      .collection("userCrops")
-      .find({ username: username })
-      .sort({ addedAt: -1 }) // Sort by newest first
-      .toArray()
+    if (uniqueOnly) {
+      // Return only unique crop names using aggregation pipeline
+      const uniqueCrops = await db
+        .collection("userCrops")
+        .aggregate([
+          { $match: { username } },
+          { $group: { _id: "$cropName" } },
+          { $sort: { _id: 1 } },
+          { $project: { cropName: "$_id", _id: 0 } },
+        ])
+        .toArray()
 
-    return NextResponse.json(
-      {
+      return NextResponse.json({
         success: true,
-        crops: crops,
-        count: crops.length,
-      },
-      { status: 200 },
-    )
+        crops: uniqueCrops.map((crop) => crop.cropName),
+        totalCrops: uniqueCrops.length,
+      })
+    } else {
+      // Return all crops with full details (original GET functionality)
+      const crops = await db
+        .collection("userCrops")
+        .find({ username: username })
+        .sort({ addedAt: -1 }) // Sort by newest first
+        .toArray()
+
+      return NextResponse.json(
+        {
+          success: true,
+          crops: crops,
+          count: crops.length,
+        },
+        { status: 200 },
+      )
+    }
   } catch (error) {
     console.error("Error fetching user crops:", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })

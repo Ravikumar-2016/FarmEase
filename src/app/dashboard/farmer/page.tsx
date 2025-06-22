@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Sprout, ArrowRight, Sun } from "lucide-react"
+import { Sprout, ArrowRight, Sun, Users } from "lucide-react"
 
 export default function FarmerDashboard() {
   const router = useRouter()
@@ -76,6 +76,39 @@ export default function FarmerDashboard() {
                     onClick={() => router.push("/weather")}
                   >
                     View Weather Forecast
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AgroBridge */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Users className="h-6 w-6 text-purple-600" />
+                  AgroBridge
+                  <Badge variant="secondary">New</Badge>
+                </CardTitle>
+                <CardDescription>Connect with farm laborers and manage work requests efficiently</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">Available Features:</h4>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• Post Work Requests</li>
+                      <li>• Track Application Status</li>
+                      <li>• View Completed Works</li>
+                      <li>• Connect with Local Laborers</li>
+                      <li>• Manage Work Timeline</li>
+                    </ul>
+                  </div>
+                  <Button
+                    className="w-full group-hover:bg-purple-600 transition-colors bg-purple-500 hover:bg-purple-600"
+                    onClick={() => router.push("/agrobridge")}
+                  >
+                    Access AgroBridge
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>

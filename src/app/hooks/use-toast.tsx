@@ -2,11 +2,19 @@
 
 import * as React from "react"
 
+export type ToastMessage = {
+  id: string
+  message: string
+  type: "success" | "error" | "warning" | "info" | "destructive"
+}
+
 type ToastProps = {
   title?: string
   description?: string
-  variant?: "default" | "destructive"
+  variant?: "default" | "destructive" | "success" | "warning" | "info"
   duration?: number
+  icon?: React.ReactNode
+  showProgress?: boolean
 }
 
 type ToastActionElement = React.ReactElement
@@ -19,7 +27,7 @@ type ToasterToast = ToastProps & {
 }
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 3000
 
 type ToasterToastType = ToasterToast
 
@@ -183,10 +191,62 @@ function useToast() {
     }
   }, [state])
 
+  const showToast = React.useCallback((message: string, type: ToastMessage["type"] = "info", duration = 3000) => {
+    const toastId = genId()
+    const toastMessage: ToastMessage = {
+      id: toastId,
+      message,
+      type,
+    }
+
+    // Add to our simple toast state
+    setState((prev) => ({
+      toasts: [toastMessage, ...prev.toasts.slice(0, TOAST_LIMIT - 1)],
+    }))
+
+    // Auto-remove after duration
+    setTimeout(() => {
+      setState((prev) => ({
+        toasts: prev.toasts.filter((t) => t.id !== toastId),
+      }))
+    }, duration)
+
+    return toastId
+  }, [])
+
+  const removeToast = React.useCallback((toastId: string) => {
+    setState((prev) => ({
+      toasts: prev.toasts.filter((t) => t.id !== toastId),
+    }))
+  }, [])
+
+  const success = React.useCallback(
+    (message: string, duration?: number) => showToast(message, "success", duration),
+    [showToast],
+  )
+  const error = React.useCallback(
+    (message: string, duration?: number) => showToast(message, "error", duration),
+    [showToast],
+  )
+  const info = React.useCallback(
+    (message: string, duration?: number) => showToast(message, "info", duration),
+    [showToast],
+  )
+  const warning = React.useCallback(
+    (message: string, duration?: number) => showToast(message, "warning", duration),
+    [showToast],
+  )
+
   return {
     ...state,
     toast,
     dismiss: (toastId?: string) => dispatch({ type: ACTION_TYPES.DISMISS_TOAST, toastId }),
+    success,
+    error,
+    info,
+    warning,
+    showToast,
+    removeToast,
   }
 }
 

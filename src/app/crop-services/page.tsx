@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { ToastContainer } from "@/components/ui/toast-container"
 import { ArrowLeft, Sprout, Beaker, Database, Loader2 } from "lucide-react"
+import { useToast } from "@/app/hooks/use-toast"
 import CropRecommendation from "@/app/crop-services/crop-recommendations"
 import FertilizerRecommendation from "@/app/crop-services/fertilizer-recommendations"
 import MyCrops from "@/app/crop-services/my-crops"
@@ -18,6 +20,7 @@ interface User {
 
 export default function CropServicesPage() {
   const router = useRouter()
+  const { toasts, dismiss } = useToast()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -60,6 +63,9 @@ export default function CropServicesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={dismiss} />
+
       {/* Page Header - Positioned below global header with proper z-index */}
       <div className="relative z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto">

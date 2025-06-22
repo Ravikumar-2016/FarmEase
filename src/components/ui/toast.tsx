@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -11,17 +11,31 @@ const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
-    ref={ref}
-    className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
-      className,
-    )}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport> & {
+    position?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center"
+  }
+>(({ className, position = "bottom-right", ...props }, ref) => {
+  const positionClasses = {
+    "top-left": "top-0 left-0",
+    "top-right": "top-0 right-0",
+    "bottom-left": "bottom-0 left-0",
+    "bottom-right": "bottom-0 right-0",
+    "top-center": "top-0 left-1/2 -translate-x-1/2",
+    "bottom-center": "bottom-0 left-1/2 -translate-x-1/2",
+  }
+
+  return (
+    <ToastPrimitives.Viewport
+      ref={ref}
+      className={cn(
+        "fixed z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:max-w-[420px]",
+        positionClasses[position],
+        className
+      )}
+      {...props}
+    />
+  )
+})
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
@@ -31,19 +45,77 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive: "destructive border-destructive bg-destructive text-destructive-foreground",
+        success: "border-success bg-success text-success-foreground",
+        warning: "border-warning bg-warning text-warning-foreground",
+        info: "border-info bg-info text-info-foreground",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  },
+  }
 )
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & VariantProps<typeof toastVariants>
->(({ className, variant, ...props }, ref) => {
-  return <ToastPrimitives.Root ref={ref} className={cn(toastVariants({ variant }), className)} {...props} />
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & 
+    VariantProps<typeof toastVariants> & {
+      duration?: number
+      icon?: React.ReactNode
+      showProgress?: boolean
+    }
+>(({ className, variant, duration = 5000, icon, showProgress = false, ...props }, ref) => {
+  const [progress, setProgress] = React.useState(100)
+
+  React.useEffect(() => {
+    if (!showProgress) return
+
+    const intervalTime = 50
+    const totalIntervals = duration / intervalTime
+    const decrementAmount = 100 / totalIntervals
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        const newProgress = prev - decrementAmount
+        if (newProgress <= 0) {
+          clearInterval(interval)
+          return 0
+        }
+        return newProgress
+      })
+    }, intervalTime)
+
+    return () => clearInterval(interval)
+  }, [duration, showProgress])
+
+  const defaultIcons = {
+    destructive: <AlertCircle className="h-5 w-5" />,
+    success: <CheckCircle2 className="h-5 w-5" />,
+    warning: <AlertTriangle className="h-5 w-5" />,
+    info: <Info className="h-5 w-5" />,
+  }
+
+  const toastIcon = icon ?? (variant && variant !== "default" ? defaultIcons[variant] : null)
+
+  return (
+    <ToastPrimitives.Root
+      ref={ref}
+      className={cn(toastVariants({ variant }), className)}
+      {...props}
+    >
+      {toastIcon && <div className="mr-3 flex-shrink-0">{toastIcon}</div>}
+      <div className="flex-1">{props.children}</div>
+      {showProgress && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1 bg-current opacity-20"
+          style={{ width: `${progress}%` }}
+        />
+      )}
+      <ToastPrimitives.Close className="absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600">
+        <X className="h-4 w-4" />
+      </ToastPrimitives.Close>
+    </ToastPrimitives.Root>
+  )
 })
 Toast.displayName = ToastPrimitives.Root.displayName
 
@@ -84,7 +156,7 @@ const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Title ref={ref} className={cn("text-sm font-semibold", className)} {...props} />
+  <ToastPrimitives.Title ref={ref} className={cn("text-sm font-semibold [&+div]:text-xs", className)} {...props} />
 ))
 ToastTitle.displayName = ToastPrimitives.Title.displayName
 

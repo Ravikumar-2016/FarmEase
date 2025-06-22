@@ -48,7 +48,7 @@ const cropInputRanges = {
 }
 
 export default function CropRecommendation() {
-  const { toast } = useToast()
+  const {success, error } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
@@ -68,11 +68,12 @@ export default function CropRecommendation() {
   })
   const [cropResult, setCropResult] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [showRecommendation, setShowRecommendation] = useState(false)
 
   // Validate form data
   const validateForm = (): boolean => {
-    const errors: string[] = []
+    const errors: Record<string, string> = {}
     const requiredFields = [
       { key: "Temperature", label: "Temperature" },
       { key: "Humidity", label: "Humidity" },
@@ -87,64 +88,56 @@ export default function CropRecommendation() {
     requiredFields.forEach(({ key, label }) => {
       const value = cropData[key as keyof CropFormData]
       if (!value || value.trim() === "") {
-        errors.push(`${label} is required`)
+        errors[key] = `${label} is required`
       } else {
         const numValue = Number.parseFloat(value)
         if (isNaN(numValue)) {
-          errors.push(`${label} must be a valid number`)
+          errors[key] = `${label} must be a valid number`
         } else {
           const range = cropInputRanges[key as keyof typeof cropInputRanges]
           if (numValue < range.min || numValue > range.max) {
-            errors.push(`${label} must be between ${range.min} and ${range.max}`)
+            errors[key] = `${label} must be between ${range.min} and ${range.max}`
           }
         }
       }
     })
 
     setValidationErrors(errors)
-    return errors.length === 0
-  }
-
-  // Check if we have a new recommendation (different from saved one)
-  const hasNewRecommendation = () => {
-    return cropResult && cropResult !== savedCropResult && !cropResult.includes("Error")
-  }
-
-  // Show button only if we have a new recommendation that hasn't been saved
-  const shouldShowAddButton = () => {
-    return hasNewRecommendation() && !cropSaved
+    return Object.keys(errors).length === 0
   }
 
   const handleCropChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setCropData({ ...cropData, [name]: value })
     // Clear validation errors when user starts typing
-    if (validationErrors.length > 0) {
-      setValidationErrors([])
+    if (validationErrors[name]) {
+      const newErrors = { ...validationErrors }
+      delete newErrors[name]
+      setValidationErrors(newErrors)
     }
-    // Reset saved state when form changes
-    if (cropSaved) {
+    // Reset states when form changes
+    if (cropSaved || showRecommendation) {
       setCropSaved(false)
+      setShowRecommendation(false)
+      setSavedCropResult("")
+      setCropResult("")
     }
   }
 
   const handleSelectChange = (value: string) => {
     setCropData({ ...cropData, Soil: value })
-    // Reset saved state when form changes
-    if (cropSaved) {
+    // Reset states when form changes
+    if (cropSaved || showRecommendation) {
       setCropSaved(false)
+      setShowRecommendation(false)
+      setSavedCropResult("")
+      setCropResult("")
     }
   }
 
   const handleCropSubmit = async () => {
     // Validate form before submission
     if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields correctly for best recommendations.",
-        variant: "destructive",
-        duration: 3000,
-      })
       return
     }
 
@@ -152,7 +145,7 @@ export default function CropRecommendation() {
     setShowRetryMessage(false)
     setCropSaved(false)
     setErrorMessage(null)
-    setValidationErrors([])
+    setShowRecommendation(false)
 
     const retryTimer = setTimeout(() => setShowRetryMessage(true), 5000)
     try {
@@ -179,29 +172,20 @@ export default function CropRecommendation() {
 
       const data = await response.json()
       setCropResult(data.crop || "Unable to generate recommendation")
+      setShowRecommendation(true)
 
       if (data.crop) {
-        toast({
-          title: "Success!",
-          description: "Crop recommendation generated successfully.",
-          duration: 2000,
-        })
         setRetryCount(0)
       } else {
         setErrorMessage("Unable to generate crop recommendation. Please check your inputs and try again.")
       }
-    } catch (error) {
+    } catch (err) {
       clearTimeout(retryTimer)
-      console.error("Crop API Error:", error)
+      console.error("Crop API Error:", err)
       setCropResult("Something went wrong.")
       setRetryCount((prev) => prev + 1)
       setErrorMessage("Failed to get crop recommendation. The service might be sleeping - please try again.")
-      toast({
-        title: "Error",
-        description: "Failed to get crop recommendation. The service might be sleeping - please try again.",
-        variant: "destructive",
-        duration: 2000,
-      })
+      error("Failed to get crop recommendation. The service might be sleeping - please try again.")
 
       setTimeout(() => {
         setErrorMessage(null)
@@ -214,12 +198,12 @@ export default function CropRecommendation() {
 
   const handleAddCropToDatabase = async () => {
     if (!cropResult || cropResult.includes("Error") || cropResult === "Unable to generate recommendation") {
-      toast({ title: "Error", description: "No valid crop recommendation to save.", variant: "destructive" })
+      error("No valid crop recommendation to save.")
       return
     }
     const username = localStorage.getItem("username")
     if (!username) {
-      toast({ title: "Error", description: "User not logged in.", variant: "destructive" })
+      error("User not logged in.")
       return
     }
     setIsSaving(true)
@@ -246,35 +230,22 @@ export default function CropRecommendation() {
       if (result.success) {
         setCropSaved(true)
         setSavedCropResult(cropResult)
-
-        toast({
-          title: "Crop Saved Successfully!",
-          description: `${cropResult} has been added to your crops collection.`,
-          duration: 2000,
-        })
+        setShowRecommendation(false)
+        success("Crop added to your collection successfully!")
       } else {
         throw new Error(result.error || "Failed to save crop")
       }
-    } catch (error) {
-      console.error("Save crop error:", error)
+    } catch (err) {
+      console.error("Save crop error:", err)
       setErrorMessage("Failed to add crop to your collection.")
-      toast({
-        title: "Error",
-        description: "Failed to add crop to your collection.",
-        variant: "destructive",
-        duration: 2000,
-      })
-
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 4000)
+      error("Failed to add crop to your collection.")
     } finally {
       setIsSaving(false)
     }
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto relative">
       <Card className="shadow-xl border-0 bg-white">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-3 text-xl sm:text-2xl">
@@ -286,6 +257,7 @@ export default function CropRecommendation() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 lg:p-8">
+          
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Environmental Parameters */}
@@ -306,12 +278,17 @@ export default function CropRecommendation() {
                     value={cropData[field]}
                     onChange={handleCropChange}
                     placeholder={`Enter ${field.toLowerCase()}`}
-                    className="w-full h-10 sm:h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg transition-colors"
+                    className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
+                      validationErrors[field] ? "border-red-500" : ""
+                    }`}
                     min={cropInputRanges[field].min}
                     max={cropInputRanges[field].max}
                     step="1"
                     required
                   />
+                  {validationErrors[field] && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
+                  )}
                   <div className="flex items-start gap-2 text-xs text-gray-500">
                     <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
                     <span>{cropInputRanges[field].suggestion}</span>
@@ -339,12 +316,15 @@ export default function CropRecommendation() {
                   value={cropData.PH}
                   onChange={handleCropChange}
                   placeholder="Enter pH level"
-                  className="w-full h-10 sm:h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg transition-colors"
+                  className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
+                    validationErrors.PH ? "border-red-500" : ""
+                  }`}
                   min={cropInputRanges.PH.min}
                   max={cropInputRanges.PH.max}
                   step="0.1"
                   required
                 />
+                {validationErrors.PH && <p className="text-red-500 text-xs mt-1">{validationErrors.PH}</p>}
                 <div className="flex items-start gap-2 text-xs text-gray-500">
                   <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
                   <span>{cropInputRanges.PH.suggestion}</span>
@@ -363,12 +343,17 @@ export default function CropRecommendation() {
                   value={cropData.Carbon}
                   onChange={handleCropChange}
                   placeholder="Enter carbon level"
-                  className="w-full h-10 sm:h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg transition-colors"
+                  className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
+                    validationErrors.Carbon ? "border-red-500" : ""
+                  }`}
                   min={cropInputRanges.Carbon.min}
                   max={cropInputRanges.Carbon.max}
                   step="0.1"
                   required
                 />
+                {validationErrors.Carbon && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.Carbon}</p>
+                )}
                 <div className="flex items-start gap-2 text-xs text-gray-500">
                   <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
                   <span>{cropInputRanges.Carbon.suggestion}</span>
@@ -381,15 +366,15 @@ export default function CropRecommendation() {
                   Soil Type *
                 </Label>
                 <Select value={cropData.Soil} onValueChange={handleSelectChange}>
-                  <SelectTrigger className="w-full h-10 sm:h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg transition-colors">
+                  <SelectTrigger className="w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors bg-white">
                     <SelectValue placeholder="Select soil type" />
                   </SelectTrigger>
-                  <SelectContent className="z-[200] bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg max-h-60 overflow-y-auto rounded-lg">
                     {["Loamy Soil", "Peaty Soil", "Acidic Soil", "Neutral Soil", "Alkaline Soil"].map((soil) => (
                       <SelectItem
                         key={soil}
                         value={soil}
-                        className="hover:bg-gray-100 focus:bg-gray-100 cursor-pointer px-3 py-2"
+                        className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-4 py-3 text-sm font-medium transition-colors"
                       >
                         {soil}
                       </SelectItem>
@@ -417,11 +402,16 @@ export default function CropRecommendation() {
                     value={cropData[field]}
                     onChange={handleCropChange}
                     placeholder={`Enter ${field.toLowerCase()} level`}
-                    className="w-full h-10 sm:h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg transition-colors"
+                    className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
+                      validationErrors[field] ? "border-red-500" : ""
+                    }`}
                     min={cropInputRanges[field].min}
                     max={cropInputRanges[field].max}
                     required
                   />
+                  {validationErrors[field] && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
+                  )}
                   <div className="flex items-start gap-2 text-xs text-gray-500">
                     <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
                     <span>{cropInputRanges[field].suggestion}</span>
@@ -429,27 +419,9 @@ export default function CropRecommendation() {
                 </div>
               ))}
             </div>
-
-            {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <Alert className="mb-6 border-red-200 bg-red-50">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <AlertDescription className="text-red-800">
-                <strong>Please fill in all required fields for best recommendations:</strong>
-                <ul className="mt-2 list-disc list-inside space-y-1">
-                  {validationErrors.map((error, index) => (
-                    <li key={index} className="text-sm">
-                      {error}
-                    </li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
           </div>
 
-          {/* <Separator className="my-6 sm:my-8" /> */}
-          <Separator className="my-2 sm:my-2" /> 
+          <Separator className="my-6 sm:my-8" />
 
           {isLoading && showRetryMessage && (
             <Alert className="mb-6 border-yellow-200 bg-yellow-50">
@@ -483,8 +455,8 @@ export default function CropRecommendation() {
             </Button>
           </div>
 
-          {cropResult && (
-            <div className="mt-6 space-y-4">
+          {showRecommendation && cropResult && (
+            <div className="mt-6 space-y-4 animate-fade-in">
               <Alert className="border-blue-200 bg-blue-50 p-4 rounded-lg">
                 <CheckCircle className="h-5 w-5 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm sm:text-base">
@@ -498,7 +470,6 @@ export default function CropRecommendation() {
                 </AlertDescription>
               </Alert>
 
-              {/* Error message */}
               {errorMessage && (
                 <Alert className="border-red-200 bg-red-50 p-4 rounded-lg">
                   <AlertCircle className="h-5 w-5 text-red-600" />
@@ -510,7 +481,7 @@ export default function CropRecommendation() {
 
               {!cropResult.includes("Error") && cropResult !== "Unable to generate recommendation" && (
                 <div className="flex justify-center pt-2">
-                  {shouldShowAddButton() ? (
+                  {!cropSaved ? (
                     <Button
                       onClick={handleAddCropToDatabase}
                       disabled={isSaving}
@@ -529,15 +500,24 @@ export default function CropRecommendation() {
                         </>
                       )}
                     </Button>
-                  ) : cropSaved && cropResult === savedCropResult ? (
+                  ) : (
                     <div className="flex items-center gap-2 text-green-600 font-semibold text-sm sm:text-base">
                       <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span>Crop Added to Your Collection</span>
                     </div>
-                  ) : null}
+                  )}
                 </div>
               )}
             </div>
+          )}
+
+          {cropSaved && (
+            <Alert className="mt-6 border-green-200 bg-green-50 animate-fade-in">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>Success!</strong> {savedCropResult} has been added to your crop collection.
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
