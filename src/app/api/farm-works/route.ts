@@ -5,7 +5,7 @@ import type { ObjectId } from "mongodb"
 // Helper to get db from clientPromise
 async function connectToDatabase() {
   const client = await clientPromise;
-  const db = client.db(); // optionally pass your db name here
+  const db = client.db("FarmEase"); // Specified FarmEase database here
   return { db };
 }
 
