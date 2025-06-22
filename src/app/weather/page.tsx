@@ -219,10 +219,10 @@ export default function WeatherPage() {
       return
     }
 
-    if (userType !== "farmer" && userType !== "admin") {
-      router.push("/login")
-      return
-    }
+    // if (userType !== "farmer" && userType !== "admin") {
+    //   router.push("/login")
+    //   return
+    // }
 
     setUser({ username, userType })
     fetchUserLocationAndWeather(username)
