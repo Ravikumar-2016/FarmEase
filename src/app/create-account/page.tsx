@@ -27,22 +27,6 @@ import {
 
 const userTypes = [
   {
-    value: "admin",
-    label: "Admin",
-    description: "System administrator with full access",
-    icon: Shield,
-    color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
-    selectedColor: "bg-blue-100 border-blue-500",
-  },
-  {
-    value: "employee",
-    label: "Employee",
-    description: "Staff member with operational access",
-    icon: Briefcase,
-    color: "bg-purple-50 border-purple-200 hover:bg-purple-100",
-    selectedColor: "bg-purple-100 border-purple-500",
-  },
-  {
     value: "farmer",
     label: "Farmer",
     description: "Agricultural producer and land owner",
@@ -106,6 +90,16 @@ export default function CreateAccountPage() {
     if (errorMessage) setErrorMessage("")
   }
 
+  const toTitleCase = (str: string) => {
+    if (!str) return ""
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+      .trim()
+  }
+
   const validateForm = () => {
     if (!formData.username || !formData.password || !formData.userType) {
       setErrorMessage("Please fill in all required fields")
@@ -143,26 +137,29 @@ export default function CreateAccountPage() {
     setIsLoading(true)
 
     try {
+      const processedData = {
+        ...formData,
+        email: email,
+        fullName: toTitleCase(formData.fullName.trim()),
+        area: toTitleCase(formData.area.trim()),
+        state: toTitleCase(formData.state.trim()),
+      }
+
       const response = await fetch("/api/create-account", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          email: email,
-        }),
+        body: JSON.stringify(processedData),
       })
 
       const data = await response.json()
 
       if (response.ok) {
         setIsSuccess(true)
-        // Store user data for auto-login
         localStorage.setItem("userType", formData.userType)
         localStorage.setItem("username", formData.username)
 
-        // Redirect to appropriate dashboard after 2 seconds
         setTimeout(() => {
           router.push(`/dashboard/${formData.userType.toLowerCase()}`)
         }, 2000)

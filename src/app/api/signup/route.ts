@@ -25,6 +25,16 @@ interface CreateAccountInput {
   zipcode?: string
 }
 
+// Utility to Title Case
+function toTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -50,14 +60,10 @@ export async function POST(request: Request) {
 }
 
 async function handleSendOTP(db: Db, { email }: SendOTPInput) {
-  if (!email) {
-    return NextResponse.json({ message: "Email is required" }, { status: 400 })
-  }
+  if (!email) return NextResponse.json({ message: "Email is required" }, { status: 400 })
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
-    return NextResponse.json({ message: "Invalid email format" }, { status: 400 })
-  }
+  if (!emailRegex.test(email)) return NextResponse.json({ message: "Invalid email format" }, { status: 400 })
 
   const users = db.collection("users")
   const signupOtps = db.collection("signup_otps")
@@ -116,7 +122,26 @@ async function handleVerifyOTP(db: Db, { email, otp }: VerifyOTPInput) {
 }
 
 async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
-  const { email, username, password, userType, fullName, mobile, area, state, zipcode } = accountData
+  let {
+    email,
+    username,
+    password,
+    userType,
+    fullName = "",
+    mobile = "",
+    area = "",
+    state = "",
+    zipcode = "",
+  } = accountData
+
+  // Trim and format fields
+  email = email.trim()
+  username = username.trim()
+  fullName = toTitleCase(fullName.trim())
+  mobile = mobile.trim()
+  area = toTitleCase(area.trim())
+  state = toTitleCase(state.trim())
+  zipcode = zipcode.trim()
 
   if (!email || !username || !password || !userType) {
     return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
@@ -138,10 +163,7 @@ async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
     return NextResponse.json({ message: "Email not verified" }, { status: 400 })
   }
 
-  const existingUser = await users.findOne({
-    $or: [{ username }, { email }],
-  })
-
+  const existingUser = await users.findOne({ $or: [{ username }, { email }] })
   if (existingUser) {
     return NextResponse.json(
       { message: existingUser.username === username ? "Username already exists" : "Email already exists" },
@@ -155,11 +177,11 @@ async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
     email,
     password: hashedPassword,
     userType,
-    fullName: fullName || "",
-    mobile: mobile || "",
-    area: area || "",
-    state: state || "",
-    zipcode: zipcode || "",
+    fullName,
+    mobile,
+    area,
+    state,
+    zipcode,
     emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),

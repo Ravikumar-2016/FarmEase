@@ -443,7 +443,7 @@ export default function SignupPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="fullName">Full Name *</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -453,6 +453,7 @@ export default function SignupPage() {
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         placeholder="Your full name"
                         className="pl-10 h-12"
+                        required
                       />
                     </div>
                   </div>
@@ -521,7 +522,7 @@ export default function SignupPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="mobile">Mobile Number</Label>
+                    <Label htmlFor="mobile">Mobile Number *</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -531,12 +532,13 @@ export default function SignupPage() {
                         onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                         placeholder="10-digit mobile number"
                         className="pl-10 h-12"
+                        required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="area">Area</Label>
+                    <Label htmlFor="area">Area *</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -546,6 +548,7 @@ export default function SignupPage() {
                         onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                         placeholder="Your area/locality"
                         className="pl-10 h-12"
+                        required
                       />
                     </div>
                   </div>
@@ -553,7 +556,7 @@ export default function SignupPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
+                    <Label htmlFor="state">State *</Label>
                     <Input
                       id="state"
                       name="state"
@@ -561,20 +564,32 @@ export default function SignupPage() {
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                       placeholder="Your state"
                       className="h-12"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="zipcode">Zip Code</Label>
-                    <Input
-                      id="zipcode"
-                      name="zipcode"
-                      value={formData.zipcode}
-                      onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
-                      placeholder="Postal code"
-                      className="h-12"
-                    />
-                  </div>
+  <Label htmlFor="zipcode">Zip Code *</Label>
+  <Input
+    id="zipcode"
+    name="zipcode"
+    type="text"
+    inputMode="numeric"
+    pattern="\d{6}"
+    maxLength={6}
+    value={formData.zipcode}
+    onChange={(e) => {
+      const value = e.target.value
+      if (/^\d{0,6}$/.test(value)) {
+        setFormData({ ...formData, zipcode: value })
+      }
+    }}
+    placeholder="6-digit postal code"
+    className="h-12"
+    required
+  />
+</div>
+
                 </div>
               </div>
 
