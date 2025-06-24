@@ -271,19 +271,10 @@ export default function WorkOpportunitiesPage() {
                 <ArrowLeft className="h-3 w-3" />
                 <span className="text-xs font-medium">Back</span>
               </Button>
-
-              <div className="flex items-center gap-2">
-                {user && <NotificationBell userId={user.username} userType="labour" />}
-                {user && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-100 text-blue-700 font-medium px-2 py-1 rounded-full text-xs border border-blue-200"
-                  >
-                    {user.username}
-                  </Badge>
-                )}
-              </div>
-
+               <div className="text-center">
+                    <h1 className="text-xl font-semibold text-gray-900 mb-1">Work Opportunities</h1>
+                    <p className="text-xs text-gray-600">Find farm work in your area</p>
+                </div>
               {user && (
                 <Badge
                   variant="secondary"
@@ -292,9 +283,6 @@ export default function WorkOpportunitiesPage() {
                   {user.username}
                 </Badge>
               )}
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-600">Find farm work in your area</p>
             </div>
           </div>
 
