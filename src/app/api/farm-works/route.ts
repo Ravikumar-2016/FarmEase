@@ -1,12 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import type { ObjectId } from "mongodb"
+import { createNotification, generateWorkId } from "../notifications/route"
 
 // Helper to get db from clientPromise
 async function connectToDatabase() {
-  const client = await clientPromise;
-  const db = client.db("FarmEase"); // Specified FarmEase database here
-  return { db };
+  const client = await clientPromise
+  const db = client.db("FarmEase") // Specified FarmEase database here
+  return { db }
 }
 
 interface FarmWork {
@@ -27,6 +28,7 @@ interface FarmWork {
     appliedAt: string
   }>
   createdAt: string
+  workId?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -91,7 +93,11 @@ export async function POST(request: NextRequest) {
 
     const { db } = await connectToDatabase()
 
+    // Generate unique workId
+    const workId = generateWorkId()
+
     const farmWork: FarmWork = {
+      workId,
       farmerUsername,
       cropName,
       workType,
@@ -106,6 +112,22 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await db.collection("farmWorks").insertOne(farmWork)
+
+    // Create notification for work creation
+    const workName = `${workType} work`
+    await createNotification(
+      db,
+      farmerUsername,
+      "farmer",
+      "creation",
+      workId,
+      cropName,
+      workName,
+      `You created ${workName} for ${cropName}`,
+    )
+
+    // Notify laborers in the same area (optional - can be implemented later for performance)
+    // This could be done via a background job to avoid slowing down the API
 
     return NextResponse.json({ success: true, workId: result.insertedId })
   } catch (error) {

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
+import { createNotification } from "../../notifications/route"
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,15 +15,19 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise
     const db = client.db("FarmEase")
     interface LabourApplication {
-      labourUsername: string;
+      labourUsername: string
       // add other fields if needed
     }
 
     interface FarmWork {
-      _id: ObjectId;
-      status: string;
-      workDate: string | Date;
-      labourApplications?: LabourApplication[];
+      _id: ObjectId
+      status: string
+      workDate: string | Date
+      labourApplications?: LabourApplication[]
+      workType: string
+      farmerUsername: string
+      cropName: string
+      workId?: string
       // add other fields if needed
     }
 
@@ -72,6 +77,35 @@ export async function POST(request: NextRequest) {
           labourApplications: { labourUsername: labourUsername },
         },
       },
+    )
+
+    // Create notifications
+    const workName = `${work.workType} work`
+
+    // Notify the farmer
+    await createNotification(
+      db,
+      work.farmerUsername,
+      "farmer",
+      "withdrawal",
+      work.workId || workId,
+      work.cropName,
+      workName,
+      `Laborer ${labourUsername} withdrew from ${workName}`,
+      labourUsername,
+    )
+
+    // Notify the laborer
+    await createNotification(
+      db,
+      labourUsername,
+      "labour",
+      "withdrawal",
+      work.workId || workId,
+      work.cropName,
+      workName,
+      `You withdrew from ${workName} for Farmer ${work.farmerUsername}`,
+      work.farmerUsername,
     )
 
     return NextResponse.json({

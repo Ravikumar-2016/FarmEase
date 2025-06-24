@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
+import { createNotification } from "../../notifications/route"
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,18 +15,22 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise
     const db = client.db("FarmEase")
     interface LabourApplication {
-      name: string;
-      mobile: string;
-      labourUsername: string;
-      appliedAt: Date;
+      name: string
+      mobile: string
+      labourUsername: string
+      appliedAt: Date
     }
 
     interface FarmWork {
-      _id: ObjectId;
-      workDate: Date | string;
-      status: string;
-      laboursRequired: number;
-      labourApplications: LabourApplication[];
+      _id: ObjectId
+      workDate: Date | string
+      status: string
+      laboursRequired: number
+      labourApplications: LabourApplication[]
+      workType: string
+      farmerUsername: string
+      cropName?: string
+      workId?: string
       // add other fields as needed
     }
 
@@ -61,7 +66,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already applied
-    const alreadyApplied = (work.labourApplications ?? []).some((app: LabourApplication) => app.labourUsername === labourUsername)
+    const alreadyApplied = (work.labourApplications ?? []).some(
+      (app: LabourApplication) => app.labourUsername === labourUsername,
+    )
 
     if (alreadyApplied) {
       return NextResponse.json({ error: "You have already applied for this work" }, { status: 400 })
@@ -76,6 +83,35 @@ export async function POST(request: NextRequest) {
     }
 
     await farmWorks.updateOne({ _id: new ObjectId(workId) }, { $push: { labourApplications: application } })
+
+    // Create notifications
+    const workName = `${work.workType} work`
+
+    // Notify the farmer
+    await createNotification(
+      db,
+      work.farmerUsername,
+      "farmer",
+      "application",
+      work.workId || workId, // Use existing workId or fallback
+      work.cropName || "",
+      workName,
+      `Laborer ${labourUsername} applied to ${workName} for ${work.cropName}`,
+      labourUsername,
+    )
+
+    // Notify the laborer
+    await createNotification(
+      db,
+      labourUsername,
+      "labour",
+      "application",
+      work.workId || workId,
+      work.cropName || "",
+      workName,
+      `You applied to ${workName} for ${work.cropName}`,
+      work.farmerUsername,
+    )
 
     return NextResponse.json({
       success: true,

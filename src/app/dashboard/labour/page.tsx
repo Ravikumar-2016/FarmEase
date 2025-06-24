@@ -9,6 +9,7 @@ import { ToastContainer } from "@/components/ui/toast-container"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
 import { useToast } from "@/app/hooks/use-toast"
 import { Briefcase, ArrowRight, Sun, Users, Clock, CheckCircle, Ban, Loader2, Calendar, MapPin } from "lucide-react"
+import { NotificationBell } from "@/components/ui/notifications-bell"
 
 interface LabourApplication {
   name: string
@@ -309,7 +310,10 @@ export default function LabourDashboard() {
         <div className="px-4 py-6 sm:px-0 space-y-8">
           {/* Welcome Section */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Labour Dashboard</h1>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <h1 className="text-3xl font-bold text-gray-900">Labour Dashboard</h1>
+              {user && <NotificationBell userId={user.username} userType="labour" />}
+            </div>
             <p className="text-gray-600">Find farm work opportunities in your area</p>
             {user && (
               <p className="text-sm text-gray-500 mt-1">
@@ -473,80 +477,78 @@ export default function LabourDashboard() {
                   <p className="text-sm text-gray-400">Apply for work opportunities to see them here</p>
                 </div>
               ) : (
-                
-                
                 <div className="space-y-4">
                   {activeApplications.map((work) => (
-       <Card key={work._id} className="border border-blue-200 hover:shadow-md transition-shadow">
-           <CardContent className="p-4">
-      <div className="flex flex-col md:flex-row justify-between items-start mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-lg text-gray-900">
-              {work.cropName} - {work.workType}
-            </h3>
-            <Badge className={getWorkTypeColor(work.workType)}>{work.workType}</Badge>
-            <Badge className={getStatusColor(work.status)}>{work.status}</Badge>
-          </div>
+                    <Card key={work._id} className="border border-blue-200 hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-lg text-gray-900">
+                                {work.cropName} - {work.workType}
+                              </h3>
+                              <Badge className={getWorkTypeColor(work.workType)}>{work.workType}</Badge>
+                              <Badge className={getStatusColor(work.status)}>{work.status}</Badge>
+                            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {formatDate(work.workDate)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              {work.labourApplications.length}/{work.laboursRequired} applied
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {work.area}, {work.state}
-            </span>
-          </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {formatDate(work.workDate)}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                {work.labourApplications.length}/{work.laboursRequired} applied
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {work.area}, {work.state}
+                              </span>
+                            </div>
 
-          {work.additionalDetails && (
-            <p className="text-sm text-gray-600 mb-3 bg-gray-50 p-2 rounded">
-              <strong>Details:</strong> {work.additionalDetails}
-            </p>
-          )}
+                            {work.additionalDetails && (
+                              <p className="text-sm text-gray-600 mb-3 bg-gray-50 p-2 rounded">
+                                <strong>Details:</strong> {work.additionalDetails}
+                              </p>
+                            )}
 
-          <div className="text-xs text-gray-500">
-            Farmer: {work.farmerUsername} • Applied:{" "}
-            {formatDateTime(
-              work.labourApplications.find((app) => app.labourUsername === user?.username)
-                ?.appliedAt || "",
-            )}
-          </div>
-        </div>
+                            <div className="text-xs text-gray-500">
+                              Farmer: {work.farmerUsername} • Applied:{" "}
+                              {formatDateTime(
+                                work.labourApplications.find((app) => app.labourUsername === user?.username)
+                                  ?.appliedAt || "",
+                              )}
+                            </div>
+                          </div>
 
-        {/* Responsive Withdraw Button */}
-        {canWithdrawFromWork(work.workDate) && (
-          <div className="w-full md:w-auto mt-3 md:mt-0 md:ml-4 flex justify-center md:block">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => showWithdrawConfirmation(work._id, work.cropName, work.workType)}
-              disabled={withdrawing === work._id}
-              className="border-orange-300 text-orange-700 hover:bg-orange-50 w-full md:w-auto max-w-xs md:max-w-none"
-            >
-              {withdrawing === work._id ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Withdrawing...
-                </>
-              ) : (
-                <>
-                  <Ban className="mr-2 h-4 w-4" />
-                  Withdraw
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-))}
+                          {/* Responsive Withdraw Button */}
+                          {canWithdrawFromWork(work.workDate) && (
+                            <div className="w-full md:w-auto mt-3 md:mt-0 md:ml-4 flex justify-center md:block">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => showWithdrawConfirmation(work._id, work.cropName, work.workType)}
+                                disabled={withdrawing === work._id}
+                                className="border-orange-300 text-orange-700 hover:bg-orange-50 w-full md:w-auto max-w-xs md:max-w-none"
+                              >
+                                {withdrawing === work._id ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Withdrawing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Withdraw
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>

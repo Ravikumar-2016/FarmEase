@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ToastContainer } from "@/components/ui/toast-container"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
 import { useToast } from "@/app/hooks/use-toast"
+import { NotificationBell } from "@/components/ui/notifications-bell"
 import {
   ArrowLeft,
   Plus,
@@ -496,12 +497,17 @@ export default function AgroBridgePage() {
               </div>
 
               {user && (
-                <Badge
-                  variant="secondary"
-                  className="bg-green-100 text-green-700 font-medium px-2 py-1 rounded-full text-xs border border-green-200"
-                >
-                  {user.username}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {user && <NotificationBell userId={user.username} userType="farmer" />}
+                  {user && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-700 font-medium px-2 py-1 rounded-full text-xs border border-green-200"
+                    >
+                      {user.username}
+                    </Badge>
+                  )}
+                </div>
               )}
             </div>
             <div className="text-center">
@@ -535,12 +541,15 @@ export default function AgroBridgePage() {
 
               {user && (
                 <div className="flex flex-col items-end">
-                  <Badge
-                    variant="secondary"
-                    className="bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-green-200"
-                  >
-                    Welcome, {user.username}
-                  </Badge>
+                  <div className="flex items-center gap-3 mb-1">
+                    <NotificationBell userId={user.username} userType="farmer" />
+                    <Badge
+                      variant="secondary"
+                      className="bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-green-200"
+                    >
+                      Welcome, {user.username}
+                    </Badge>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">Farmer Account</p>
                 </div>
               )}

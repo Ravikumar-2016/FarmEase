@@ -153,7 +153,11 @@ const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >(({ className, ...props }, ref) => (
-  <DropdownMenuPrimitive.Separator ref={ref} className={cn("-mx-1 my-1 h-px bg-muted", className)} {...props} />
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
 ))
 DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
 
@@ -161,6 +165,20 @@ const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTML
   return <span className={cn("ml-auto text-xs tracking-widest opacity-60", className)} {...props} />
 }
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
+
+// ✅ New component added below
+const DropdownMenuHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+  return (
+    <div
+      className={cn(
+        "px-2 py-1.5 text-xs font-medium uppercase text-muted-foreground tracking-wider",
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+DropdownMenuHeader.displayName = "DropdownMenuHeader"
 
 export {
   DropdownMenu,
@@ -178,4 +196,5 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
+  DropdownMenuHeader, // 👈 Exported here
 }

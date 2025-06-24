@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ToastContainer } from "@/components/ui/toast-container"
 import { useToast } from "@/app/hooks/use-toast"
+import { NotificationBell } from "@/components/ui/notifications-bell"
 import {
   ArrowLeft,
   MapPin,
@@ -245,16 +246,15 @@ export default function WorkOpportunitiesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 relative">
       {/* Toast Container */}
-            <ToastContainer
-              toasts={toasts.map((toast: any) => ({
-                id: toast.id,
-                message: toast.message || toast.title || "",
-                type: toast.type || toast.variant || "info",
-                // add other properties if needed
-              }))}
-              onRemove={removeToast}
-            />
-      
+      <ToastContainer
+        toasts={toasts.map((toast: any) => ({
+          id: toast.id,
+          message: toast.message || toast.title || "",
+          type: toast.type || toast.variant || "info",
+          // add other properties if needed
+        }))}
+        onRemove={removeToast}
+      />
 
       {/* Header */}
       <div className="relative z-10 bg-white border-b border-gray-200 shadow-sm">
@@ -273,10 +273,15 @@ export default function WorkOpportunitiesPage() {
               </Button>
 
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full">
-                  <Briefcase className="h-4 w-4 text-blue-600" />
-                </div>
-                <h1 className="text-lg font-bold text-gray-900 leading-tight">Work Opportunities</h1>
+                {user && <NotificationBell userId={user.username} userType="labour" />}
+                {user && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-700 font-medium px-2 py-1 rounded-full text-xs border border-blue-200"
+                  >
+                    {user.username}
+                  </Badge>
+                )}
               </div>
 
               {user && (
@@ -319,12 +324,15 @@ export default function WorkOpportunitiesPage() {
 
               {user && (
                 <div className="flex flex-col items-end">
-                  <Badge
-                    variant="secondary"
-                    className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-blue-200"
-                  >
-                    Welcome, {user.username}
-                  </Badge>
+                  <div className="flex items-center gap-3 mb-1">
+                    <NotificationBell userId={user.username} userType="labour" />
+                    <Badge
+                      variant="secondary"
+                      className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-blue-200"
+                    >
+                      Welcome, {user.username}
+                    </Badge>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">Labour Account</p>
                 </div>
               )}

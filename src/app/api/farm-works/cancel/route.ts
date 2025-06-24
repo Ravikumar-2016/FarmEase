@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
+import { createNotification } from "../../notifications/route"
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +56,36 @@ export async function POST(request: NextRequest) {
         },
       },
     )
+
+    // Create notifications
+    const workName = `${work.workType} work`
+
+    // Notify the farmer
+    await createNotification(
+      db,
+      farmerUsername,
+      "farmer",
+      "cancellation",
+      work.workId || workId,
+      work.cropName,
+      workName,
+      `You cancelled ${workName} for ${work.cropName}`,
+    )
+
+    // Notify all applicants
+    for (const application of work.labourApplications || []) {
+      await createNotification(
+        db,
+        application.labourUsername,
+        "labour",
+        "cancellation",
+        work.workId || workId,
+        work.cropName,
+        workName,
+        `Farmer ${farmerUsername} cancelled ${workName} for ${work.cropName}`,
+        farmerUsername,
+      )
+    }
 
     return NextResponse.json({
       success: true,
