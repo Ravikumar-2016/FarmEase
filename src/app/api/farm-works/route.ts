@@ -37,12 +37,19 @@ export async function GET(request: NextRequest) {
     const username = searchParams.get("username")
     const area = searchParams.get("area")
     const state = searchParams.get("state")
+    const all = searchParams.get("all")
+    const status = searchParams.get("status")
 
     const { db } = await connectToDatabase()
 
     let query: Record<string, unknown> = {}
 
-    if (username) {
+    if (all === "true") {
+      // Return all works for employee dashboard
+      query = {}
+    } else if (status) {
+      query.status = status
+    } else if (username) {
       // Farmer requesting their own works
       query = { farmerUsername: username }
     } else if (area && state) {

@@ -3,61 +3,73 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import {
   Sprout,
-  BarChart3,
+  CloudRain,
   Users,
-  MapPin,
   TrendingUp,
-  Shield,
   Bell,
-  Calendar,
   MessageSquare,
-  Zap,
-  ArrowRight,
-  CheckCircle,
-  Globe,
-  Smartphone,
-  Database,
+  BarChart3,
+  Shield,
+  FileText,
   Settings,
   Search,
-  FileText,
-  Target,
+  ArrowRight,
+  CheckCircle,
+  Smartphone,
+  Globe,
+  Wrench,
+  DollarSign,
+  Camera,
 } from "lucide-react"
 
 export default function FeaturesPage() {
   const farmerFeatures = [
     {
       icon: Sprout,
-      title: "Crop Management",
-      description: "Add, update, and track crops with comprehensive management tools",
-      benefits: ["Crop lifecycle tracking", "Planting and harvest schedules", "Growth monitoring", "Yield predictions"],
-    },
-    {
-      icon: Target,
-      title: "Fertilizer & Pesticide Suggestions",
-      description: "Government-backed recommendations for optimal crop treatment",
+      title: "AI Crop Services",
+      description: "Intelligent crop and fertilizer recommendations based on environmental conditions",
       benefits: [
-        "Government data integration",
-        "Crop-specific recommendations",
-        "Application timing guidance",
-        "Cost-effective solutions",
+        "AI-generated crop suggestions",
+        "Smart fertilizer recommendations",
+        "Environmental condition analysis",
+        "My Crops tracking system",
       ],
     },
     {
-      icon: BarChart3,
-      title: "Market Price Updates",
-      description: "Daily regional market prices for informed selling decisions",
+      icon: CloudRain,
+      title: "Weather Forecast",
+      description: "Comprehensive weather data with automatic location detection",
       benefits: [
-        "Real-time price data",
-        "Regional market trends",
-        "Price comparison tools",
-        "Historical data analysis",
+        "24-hour detailed forecasts",
+        "5-day weather predictions",
+        "Sunrise/sunset times",
+        "Wind speed, humidity, UV index",
+        "Air pressure monitoring",
+        "Search weather for any location",
       ],
     },
     {
       icon: Users,
-      title: "Labor Management",
-      description: "Hire laborers, view profiles, and track work history efficiently",
-      benefits: ["Laborer profile browsing", "Work history tracking", "Rating and review system", "Payment management"],
+      title: "AgroBridge Labor Platform",
+      description: "Connect with laborers and manage work opportunities efficiently",
+      benefits: [
+        "Post work opportunities",
+        "View job applicants",
+        "Real-time notifications",
+        "Work history tracking",
+        "Cancel/modify postings",
+      ],
+    },
+    {
+      icon: TrendingUp,
+      title: "Market Prices",
+      description: "Access official government market data for informed decisions",
+      benefits: [
+        "Direct agmarket.gov.in integration",
+        "Regional price comparisons",
+        "Real-time market updates",
+        "Crop-specific pricing",
+      ],
     },
   ]
 
@@ -65,126 +77,133 @@ export default function FeaturesPage() {
     {
       icon: Search,
       title: "Work Discovery",
-      description: "Browse and apply for job posts from nearby farmers",
-      benefits: ["Job search filters", "Application tracking", "Work preferences", "Skill-based matching"],
+      description: "Find and apply for agricultural work opportunities in your region",
+      benefits: ["Regional work listings", "Application tracking", "Work withdrawal options", "Past work history"],
+    },
+    {
+      icon: CloudRain,
+      title: "Weather Access",
+      description: "Same comprehensive weather forecasting tools as farmers",
+      benefits: ["Location-based forecasts", "Work planning assistance", "Weather alerts", "Multi-location search"],
     },
     {
       icon: Bell,
-      title: "Notifications & Alerts",
-      description: "Real-time alerts for new opportunities and updates",
-      benefits: ["New job notifications", "Application status updates", "Payment confirmations", "Work reminders"],
-    },
-    {
-      icon: MapPin,
-      title: "Geo-Based Matching",
-      description: "Find work opportunities near your location",
+      title: "Notifications & Announcements",
+      description: "Stay informed with real-time updates and employee announcements",
       benefits: [
-        "Location-based job search",
-        "Distance calculations",
-        "Travel time estimates",
-        "Local market insights",
+        "Work opportunity alerts",
+        "Application status updates",
+        "Employee announcements",
+        "System notifications",
       ],
     },
     {
       icon: MessageSquare,
-      title: "Support Center",
-      description: "Raise issues and get assistance from our support team",
-      benefits: ["24/7 support access", "Issue tracking", "FAQ resources", "Direct communication"],
+      title: "Query Support",
+      description: "Raise issues and get assistance from the support team",
+      benefits: ["Issue reporting system", "Query tracking", "Support team assistance", "Problem resolution"],
     },
   ]
 
   const employeeFeatures = [
     {
-      icon: FileText,
-      title: "Query Management",
-      description: "View and resolve user queries efficiently",
-      benefits: ["Query categorization", "Priority management", "Response tracking", "Resolution analytics"],
-    },
-    {
-      icon: Database,
-      title: "Market & Crop Updates",
-      description: "Enter new price and crop information into the system",
-      benefits: ["Data entry tools", "Validation systems", "Bulk upload features", "Update notifications"],
-    },
-    {
-      icon: TrendingUp,
-      title: "Work Monitoring",
-      description: "Track work engagement and labor assignments",
-      benefits: ["Activity dashboards", "Performance metrics", "Assignment tracking", "Progress reports"],
-    },
-    {
       icon: Bell,
-      title: "Notification Management",
-      description: "Push alerts and updates to farmers and laborers",
-      benefits: ["Broadcast messaging", "Targeted notifications", "Scheduling tools", "Delivery tracking"],
+      title: "Announcement Management",
+      description: "Create, update, and manage platform-wide announcements",
+      benefits: [
+        "Create announcements",
+        "Update existing content",
+        "Delete outdated information",
+        "Target specific user groups",
+      ],
+    },
+    {
+      icon: MessageSquare,
+      title: "Query Resolution",
+      description: "Handle and resolve user queries from farmers and laborers",
+      benefits: ["Query categorization", "Response management", "Resolution tracking", "User communication"],
+    },
+    {
+      icon: BarChart3,
+      title: "Task Monitoring",
+      description: "View and monitor all active user tasks across the platform",
+      benefits: ["Real-time task overview", "User activity monitoring", "Performance tracking", "System health checks"],
+    },
+    {
+      icon: FileText,
+      title: "Internal Ticketing",
+      description: "Raise tickets to higher authorities for complex issues",
+      benefits: ["Escalation system", "Ticket management", "Authority communication", "Issue documentation"],
     },
   ]
 
   const adminFeatures = [
     {
-      icon: Shield,
-      title: "Platform Oversight",
-      description: "Manage users, employees, and platform performance",
-      benefits: ["User management", "System monitoring", "Security controls", "Performance analytics"],
-    },
-    {
-      icon: Database,
-      title: "Database Management",
-      description: "Control datasets of crops, pesticides, fertilizers, and prices",
-      benefits: ["Data validation", "Content moderation", "Backup management", "System optimization"],
-    },
-    {
       icon: BarChart3,
-      title: "Analytics & Trends",
-      description: "View platform-wide market trend analytics",
-      benefits: ["Usage statistics", "Market trend analysis", "User behavior insights", "Performance reports"],
+      title: "Platform Analytics",
+      description: "Comprehensive analytics and statistics for the entire platform",
+      benefits: ["User engagement metrics", "Platform performance data", "Usage statistics", "Growth analytics"],
+    },
+    {
+      icon: Users,
+      title: "User Management",
+      description: "Add, update, or remove employees and partners",
+      benefits: ["Employee administration", "Partner management", "Role assignments", "Access control"],
+    },
+    {
+      icon: Shield,
+      title: "System Oversight",
+      description: "Monitor platform operations and resolve escalated tickets",
+      benefits: ["System monitoring", "Ticket resolution", "Security oversight", "Performance optimization"],
     },
     {
       icon: Settings,
-      title: "Employee Management",
-      description: "Add, remove, or edit employee details and manage operations",
-      benefits: ["Staff administration", "Role management", "Performance tracking", "Salary management"],
-    },
-  ]
-
-  const additionalFeatures = [
-    {
-      icon: MapPin,
-      title: "Geo-Based Services",
-      description: "Location-based matching for markets and services",
-    },
-    {
-      icon: Globe,
-      title: "Multilingual Support",
-      description: "Platform available in multiple regional languages (coming soon)",
-    },
-    {
-      icon: Calendar,
-      title: "Issue Reporting",
-      description: "Submit problems and get responses from support team",
-    },
-    {
-      icon: Zap,
-      title: "Real-Time Updates",
-      description: "Live data synchronization across all platform features",
+      title: "Strategic Planning",
+      description: "Implement future features and platform expansion",
+      benefits: ["Feature development", "Platform updates", "Database management", "Future roadmap planning"],
     },
   ]
 
   const futureFeatures = [
     {
-      icon: Smartphone,
-      title: "Mobile Application",
-      description: "Android app with offline mode and sync capabilities",
+      icon: Camera,
+      title: "AI Disease Detection",
+      description: "Advanced crop disease identification using computer vision",
     },
     {
-      icon: TrendingUp,
-      title: "Advanced Dashboards",
-      description: "Real-time dashboards for comprehensive yield statistics",
+      icon: Wrench,
+      title: "Machinery Rental",
+      description: "Agricultural equipment rental and booking system",
+    },
+    {
+      icon: BarChart3,
+      title: "Market Analytics",
+      description: "Advanced market trend analysis and price predictions",
     },
     {
       icon: Shield,
-      title: "Blockchain Integration",
-      description: "Secure contracts for labor agreements and transactions",
+      title: "Crop Protection",
+      description: "Comprehensive crop protection and insurance modules",
+    },
+    {
+      icon: Globe,
+      title: "Multilingual Support",
+      description: "Platform available in multiple regional languages",
+    },
+    {
+      icon: DollarSign,
+      title: "Financial Services",
+      description: "Agricultural loans, insurance, and financial planning",
+    },
+    {
+      icon: MessageSquare,
+      title: "Community Forums",
+      description: "Farmer communities and knowledge sharing platforms",
+    },
+    {
+      icon: Smartphone,
+      title: "Mobile Application",
+      description: "Native mobile app with offline capabilities",
     },
   ]
 
@@ -194,11 +213,11 @@ export default function FeaturesPage() {
       <section className="bg-gradient-to-br from-green-50 to-blue-50 py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Comprehensive Features for <span className="text-green-600">Every Agricultural Stakeholder</span>
+            Comprehensive Features for <span className="text-green-600">Modern Agriculture</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-8">
-            FarmEase provides specialized tools and capabilities for farmers, laborers, employees, and administrators,
-            all integrated into one powerful platform.
+            FarmEase provides specialized tools for farmers, laborers, employees, and administrators, all powered by AI
+            and integrated into one intelligent platform.
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
@@ -216,7 +235,7 @@ export default function FeaturesPage() {
             <div className="text-4xl mb-4">👨‍🌾</div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Farmer Features</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools for crop management, market access, and labor coordination
+              AI-powered crop management, weather forecasting, and labor coordination tools
             </p>
           </div>
 
@@ -224,7 +243,10 @@ export default function FeaturesPage() {
             {farmerFeatures.map((feature, index) => {
               const IconComponent = feature.icon
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-green-600"
+                >
                   <CardHeader>
                     <div className="flex items-center mb-4">
                       <div className="p-3 bg-green-100 rounded-lg mr-4">
@@ -257,10 +279,10 @@ export default function FeaturesPage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="text-4xl mb-4">👷‍♂️</div>
+            <div className="text-4xl mb-4">🧑‍🏭</div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Laborer Features</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Job discovery, geo-based matching, and comprehensive support systems
+              Work discovery, weather access, and comprehensive support systems
             </p>
           </div>
 
@@ -268,7 +290,10 @@ export default function FeaturesPage() {
             {laborerFeatures.map((feature, index) => {
               const IconComponent = feature.icon
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-blue-600"
+                >
                   <CardHeader>
                     <div className="flex items-center mb-4">
                       <div className="p-3 bg-blue-100 rounded-lg mr-4">
@@ -304,7 +329,7 @@ export default function FeaturesPage() {
             <div className="text-4xl mb-4">🧑‍💼</div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Employee Features</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Query management, data updates, and platform monitoring capabilities
+              Communication management, query resolution, and platform monitoring
             </p>
           </div>
 
@@ -312,7 +337,10 @@ export default function FeaturesPage() {
             {employeeFeatures.map((feature, index) => {
               const IconComponent = feature.icon
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-purple-600"
+                >
                   <CardHeader>
                     <div className="flex items-center mb-4">
                       <div className="p-3 bg-purple-100 rounded-lg mr-4">
@@ -345,10 +373,10 @@ export default function FeaturesPage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="text-4xl mb-4">🛠️</div>
+            <div className="text-4xl mb-4">🛡️</div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Administrator Features</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Complete platform oversight, analytics, and management capabilities
+              Platform analytics, user management, and strategic oversight
             </p>
           </div>
 
@@ -356,7 +384,10 @@ export default function FeaturesPage() {
             {adminFeatures.map((feature, index) => {
               const IconComponent = feature.icon
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-orange-600"
+                >
                   <CardHeader>
                     <div className="flex items-center mb-4">
                       <div className="p-3 bg-orange-100 rounded-lg mr-4">
@@ -385,60 +416,29 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* Additional Platform Features */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Additional Platform Features</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Cross-platform capabilities that benefit all user types
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {additionalFeatures.map((feature, index) => {
-              const IconComponent = feature.icon
-              return (
-                <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
-                  <CardHeader>
-                    <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
-                      <IconComponent className="h-6 w-6 text-green-600" />
-                    </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-gray-600">{feature.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* Future Features */}
       <section className="py-20 bg-green-600">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Coming Soon</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Future Expansion Features</h2>
             <p className="text-xl text-green-100 max-w-2xl mx-auto">
-              Exciting new features in development for the future of FarmEase
+              Upcoming innovations to further revolutionize agricultural technology
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {futureFeatures.map((feature, index) => {
               const IconComponent = feature.icon
               return (
                 <Card key={index} className="bg-white/10 border-white/20 text-white text-center">
                   <CardHeader>
                     <div className="mx-auto mb-4 p-3 bg-white/20 rounded-full w-fit">
-                      <IconComponent className="h-8 w-8 text-green-100" />
+                      <IconComponent className="h-6 w-6 text-green-100" />
                     </div>
-                    <CardTitle className="text-xl text-white">{feature.title}</CardTitle>
+                    <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-green-100">{feature.description}</CardDescription>
+                    <CardDescription className="text-green-100 text-sm">{feature.description}</CardDescription>
                   </CardContent>
                 </Card>
               )
@@ -452,7 +452,7 @@ export default function FeaturesPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Experience FarmEase?</h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of agricultural stakeholders who are already benefiting from our comprehensive platform.
+            Join the agricultural revolution with our comprehensive platform designed for modern farming needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">

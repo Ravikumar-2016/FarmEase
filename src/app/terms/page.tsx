@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Scale, Shield, AlertTriangle, FileText, Clock, Mail, Phone } from "lucide-react"
+import { Scale, Shield, AlertTriangle, FileText, Clock, Mail, Phone, Bot, Users } from "lucide-react"
 
 export default function TermsPage() {
   const userTypes = [
@@ -7,71 +7,102 @@ export default function TermsPage() {
       icon: "👨‍🌾",
       title: "Farmers",
       responsibilities: [
-        "Provide accurate crop and contact information",
-        "Use labor management features responsibly",
-        "Respect laborers' rights and agreed terms",
-        "Report issues through proper channels",
+        "Provide accurate crop and location information for AI recommendations",
+        "Use AgroBridge labor management features responsibly",
+        "Respect laborers' rights and honor agreed work terms",
+        "Report issues through proper platform channels",
+        "Maintain accurate regional data for weather and market services",
       ],
     },
     {
-      icon: "👷‍♂️",
+      icon: "🧑‍🏭",
       title: "Laborers",
       responsibilities: [
-        "Maintain accurate profile and availability",
-        "Honor work commitments and agreements",
-        "Communicate professionally with farmers",
-        "Report any workplace issues promptly",
+        "Maintain accurate profile, location, and availability information",
+        "Honor work commitments and agreements made through AgroBridge",
+        "Communicate professionally with farmers and employers",
+        "Report workplace issues or disputes promptly",
+        "Provide correct regional information for work matching",
       ],
     },
     {
       icon: "🧑‍💼",
       title: "Employees",
       responsibilities: [
-        "Handle user queries professionally and promptly",
-        "Maintain data accuracy and integrity",
-        "Protect user privacy and confidential information",
-        "Follow platform guidelines and procedures",
+        "Handle user queries and announcements professionally",
+        "Maintain data accuracy and platform integrity",
+        "Protect user privacy and confidential agricultural information",
+        "Follow platform guidelines and escalation procedures",
+        "Provide accurate information for AI system improvements",
       ],
     },
     {
-      icon: "🛠️",
+      icon: "🛡️",
       title: "Administrators",
       responsibilities: [
-        "Ensure platform security and performance",
-        "Manage user accounts and resolve disputes",
-        "Maintain system integrity and data protection",
-        "Oversee employee performance and platform operations",
+        "Ensure platform security, performance, and data protection",
+        "Manage user accounts and resolve complex disputes",
+        "Oversee AI system performance and data accuracy",
+        "Maintain system integrity and strategic platform development",
+        "Protect agricultural data and user privacy",
       ],
     },
   ]
 
   const prohibitedActivities = [
-    "Creating fake accounts or providing false information",
-    "Harassment, discrimination, or abusive behavior toward other users",
-    "Posting inappropriate, offensive, or illegal content",
-    "Attempting to hack, disrupt, or compromise platform security",
+    "Creating fake accounts or providing false agricultural or personal information",
+    "Harassment, discrimination, or abusive behavior toward other platform users",
+    "Posting inappropriate, offensive, or illegal content on the platform",
+    "Attempting to hack, disrupt, or compromise platform security or AI systems",
     "Using the platform for non-agricultural or commercial spam purposes",
     "Sharing login credentials or allowing unauthorized access to accounts",
-    "Violating intellectual property rights or applicable laws",
-    "Manipulating market data or providing false agricultural information",
+    "Violating intellectual property rights or applicable agricultural laws",
+    "Manipulating weather data, market information, or AI recommendations",
+    "Misusing AgroBridge for fraudulent work postings or applications",
+    "Interfering with AI algorithms or attempting to manipulate recommendations",
   ]
 
   const platformRules = [
     {
-      title: "Account Security",
-      description: "Users are responsible for maintaining the security of their accounts and passwords",
+      title: "Account Security & Data Accuracy",
+      description:
+        "Users must maintain secure accounts and provide accurate personal and regional information for optimal service delivery",
     },
     {
-      title: "Accurate Information",
-      description: "All information provided must be truthful, current, and complete",
+      title: "Agricultural Information Integrity",
+      description:
+        "All crop, location, and agricultural data must be truthful and current for accurate AI recommendations",
     },
     {
-      title: "Respectful Communication",
-      description: "All interactions must be professional, respectful, and appropriate",
+      title: "Professional Communication",
+      description: "All interactions through AgroBridge and platform features must be respectful and appropriate",
     },
     {
-      title: "Compliance",
-      description: "Users must comply with all applicable local, state, and national laws",
+      title: "Legal Compliance",
+      description: "Users must comply with all applicable agricultural, labor, and data protection laws",
+    },
+  ]
+
+  const aiDataUsage = [
+    {
+      title: "AI Recommendations",
+      description:
+        "Our AI systems use your agricultural and environmental data to provide crop and fertilizer suggestions. These are advisory only and should not replace professional agricultural consultation.",
+    },
+    {
+      title: "Weather Integration",
+      description:
+        "Location data is used for automatic weather detection and forecasting. Users are responsible for verifying weather information for critical farming decisions.",
+    },
+    {
+      title: "Market Data",
+      description:
+        "Market prices are sourced from government databases (agmarket.gov.in) and provided for informational purposes. We are not responsible for trading decisions based on this data.",
+    },
+    {
+      title: "Labor Matching",
+      description:
+        "AgroBridge facilitates connections between farmers and laborers but does not guarantee work quality, safety, or payment. Users are responsible for their agreements.",
     },
   ]
 
@@ -87,8 +118,8 @@ export default function TermsPage() {
             Terms of <span className="text-blue-600">Service</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            These terms govern your use of the FarmEase agricultural platform. By using our services, you agree to
-            comply with these terms and conditions.
+            These terms govern your use of the FarmEase agricultural platform, including AI-powered recommendations,
+            weather services, AgroBridge labor platform, and market data integration.
           </p>
           <div className="mt-6 text-sm text-gray-500">
             Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
@@ -106,17 +137,18 @@ export default function TermsPage() {
               </CardHeader>
               <CardContent className="text-gray-600 space-y-4">
                 <p>
-                  Welcome to FarmEase, a comprehensive agricultural platform designed to connect and empower farmers,
-                  laborers, employees, and administrators. By accessing or using our platform, you agree to be bound by
-                  these Terms of Service.
+                  Welcome to FarmEase, a comprehensive agricultural platform that leverages AI technology to provide
+                  crop recommendations, weather forecasting, labor coordination, and market data integration. By
+                  accessing or using our platform, you agree to be bound by these Terms of Service.
                 </p>
                 <p>
-                  FarmEase provides tools for crop management, market data access, labor coordination, and agricultural
-                  support services. These terms apply to all users regardless of their role (farmer, laborer, employee,
-                  or administrator).
+                  FarmEase serves farmers, laborers, employees, and administrators with specialized features including
+                  AI-powered crop services, comprehensive weather forecasting, AgroBridge labor platform, and direct
+                  integration with government market data sources.
                 </p>
                 <p>
-                  If you do not agree with any part of these terms, you may not access or use the FarmEase platform.
+                  If you do not agree with any part of these terms, including our data usage policies for AI
+                  recommendations, you may not access or use the FarmEase platform.
                 </p>
               </CardContent>
             </Card>
@@ -124,45 +156,60 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* Platform Description */}
+      {/* Platform Services */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">About FarmEase Platform</h2>
-              <p className="text-xl text-gray-600">Understanding our agricultural ecosystem and services</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">FarmEase Platform Services</h2>
+              <p className="text-xl text-gray-600">Understanding our comprehensive agricultural ecosystem</p>
             </div>
 
             <Card>
               <CardContent className="p-8">
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Platform Purpose</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
+                      <Bot className="mr-2 h-5 w-5 text-green-600" />
+                      AI-Powered Agricultural Services
+                    </h3>
                     <p className="text-gray-600">
-                      FarmEase is designed to address key agricultural challenges including lack of timely crop advice,
-                      inaccessible market data, unstructured labor availability, and poor coordination among
-                      stakeholders.
+                      FarmEase provides AI-generated crop and fertilizer recommendations based on environmental
+                      conditions, comprehensive weather forecasting with automatic location detection, and intelligent
+                      agricultural insights to improve farming outcomes.
                     </p>
                   </div>
 
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Core Services</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
+                      <Users className="mr-2 h-5 w-5 text-blue-600" />
+                      AgroBridge Labor Platform
+                    </h3>
+                    <p className="text-gray-600">
+                      Our labor coordination platform connects farmers with laborers through job postings, real-time
+                      notifications, application tracking, and work history management to streamline agricultural
+                      workforce coordination.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Core Platform Features</h3>
                     <ul className="space-y-2 text-gray-600">
                       <li className="flex items-start space-x-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Crop management and agricultural recommendations</span>
+                        <span>AI crop and fertilizer recommendations with My Crops tracking</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Real-time market price updates and trends</span>
+                        <span>24-hour and 5-day weather forecasting with detailed metrics</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Labor management and geo-based matching</span>
+                        <span>Real-time notifications for work opportunities and platform updates</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Issue reporting and support services</span>
+                        <span>Direct integration with government market data (agmarket.gov.in)</span>
                       </li>
                     </ul>
                   </div>
@@ -178,9 +225,9 @@ export default function TermsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">User Responsibilities</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">User Responsibilities by Role</h2>
               <p className="text-xl text-gray-600">
-                Each user type has specific responsibilities within the FarmEase ecosystem
+                Each user type has specific responsibilities within the FarmEase agricultural ecosystem
               </p>
             </div>
 
@@ -210,8 +257,51 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* Platform Rules */}
+      {/* Data Accuracy Requirements */}
       <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <Card className="border-l-4 border-l-orange-600">
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center">
+                  <FileText className="mr-3 h-6 w-6 text-orange-600" />
+                  Data Accuracy & User Responsibility
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-gray-600">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Critical Information Requirements</h3>
+                  <p>
+                    During signup, job applications, or partnership requests, users must provide accurate personal and
+                    regional information including full name, email, mobile number, and complete address details. The
+                    correctness of this information is entirely the user&apos;s responsibility.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Service Impact</h3>
+                  <p>
+                    Accurate regional information (area, state, zip code) is essential for location-based services
+                    including weather forecasting, AI recommendations, labor matching, and market data delivery.
+                    Incorrect details may significantly affect service quality and feature accessibility.
+                  </p>
+                </div>
+
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <p className="text-orange-800 font-medium">
+                    <strong>Important:</strong> Inaccurate information may result in incorrect AI recommendations,
+                    failed weather forecasting, poor labor matching, or incomplete service delivery. Users are
+                    responsible for updating their information when changes occur.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Rules */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -227,6 +317,29 @@ export default function TermsPage() {
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-gray-900 mb-2">{rule.title}</h3>
                     <p className="text-gray-600">{rule.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI & Data Usage */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">AI Services & Data Usage</h2>
+              <p className="text-xl text-gray-600">Understanding how our AI systems and data integration work</p>
+            </div>
+
+            <div className="space-y-6">
+              {aiDataUsage.map((item, index) => (
+                <Card key={index} className="border-l-4 border-l-purple-600">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                    <p className="text-gray-600">{item.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -267,49 +380,8 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* Intellectual Property */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center">
-                  <FileText className="mr-3 h-6 w-6 text-blue-600" />
-                  Intellectual Property Rights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-gray-600">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Platform Ownership</h3>
-                  <p>
-                    The FarmEase platform, including its design, functionality, content, and technology, is owned by
-                    FarmEase and protected by intellectual property laws.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">User Content</h3>
-                  <p>
-                    Users retain ownership of the content they create (crop data, profiles, messages). By using
-                    FarmEase, you grant us a license to use this content to provide our services.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Agricultural Data</h3>
-                  <p>
-                    Market prices, crop recommendations, and agricultural advice are sourced from government and public
-                    datasets. Users may not redistribute this data without proper attribution.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* Limitation of Liability */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <Card className="border-l-4 border-l-orange-600">
@@ -321,71 +393,35 @@ export default function TermsPage() {
               </CardHeader>
               <CardContent className="space-y-4 text-gray-600">
                 <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Recommendations</h3>
+                  <p>
+                    AI-generated crop and fertilizer recommendations are based on available environmental data and
+                    should supplement, not replace, professional agricultural consultation. Users are responsible for
+                    their farming decisions and outcomes.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Weather & Market Data</h3>
+                  <p>
+                    Weather forecasts and market prices are provided for informational purposes. We are not responsible
+                    for farming decisions, financial losses, or crop damage based on this information.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AgroBridge Labor Platform</h3>
+                  <p>
+                    FarmEase facilitates connections between farmers and laborers but is not responsible for work
+                    quality, safety, payment disputes, or agreements made between users.
+                  </p>
+                </div>
+
+                <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Service Availability</h3>
                   <p>
-                    While we strive for 24/7 availability, FarmEase is provided &quot;as is&quot; without warranties. We do not guarantee uninterrupted service or error-free operation.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Agricultural Advice</h3>
-                  <p>
-                    Crop recommendations and agricultural advice are based on available data and should not replace
-                    professional agricultural consultation. Users are responsible for their farming decisions.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Market Data</h3>
-                  <p>
-                    Market prices are provided for informational purposes. We are not responsible for trading decisions
-                    or financial losses based on this information.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">User Interactions</h3>
-                  <p>
-                    FarmEase facilitates connections between users but is not responsible for disputes, agreements, or
-                    transactions between farmers and laborers.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Account Termination */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Account Termination</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-gray-600">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">User-Initiated Termination</h3>
-                  <p>
-                    Users may terminate their accounts at any time through account settings or by contacting support.
-                    Upon termination, access to platform features will be immediately revoked.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Platform-Initiated Termination</h3>
-                  <p>
-                    FarmEase reserves the right to suspend or terminate accounts that violate these terms, engage in
-                    prohibited activities, or pose security risks to the platform.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Data Retention</h3>
-                  <p>
-                    Upon account termination, personal data will be deleted according to our Privacy Policy. Some
-                    information may be retained for legal compliance or legitimate business purposes.
+                    While we strive for continuous availability, FarmEase is provided &quot;as is&quot; without
+                    warranties. We do not guarantee uninterrupted service or error-free AI recommendations.
                   </p>
                 </div>
               </CardContent>
@@ -406,19 +442,22 @@ export default function TermsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-gray-600">
-                <p>FarmEase reserves the right to modify these Terms of Service at any time. When we make changes:</p>
+                <p>
+                  FarmEase reserves the right to modify these Terms of Service to reflect new features, AI improvements,
+                  or legal requirements. When we make changes:
+                </p>
                 <ul className="space-y-2">
                   <li className="flex items-start space-x-2">
                     <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                    <span>Users will be notified via email or platform notifications</span>
+                    <span>Users will be notified via email, platform notifications, or announcements</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                    <span>The updated terms will be posted on this page with a new &quot;Last updated&quot; date</span>
+                    <span>Updated terms will be posted with a new &quot;Last updated&quot; date</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                    <span>Continued use of the platform constitutes acceptance of the new terms</span>
+                    <span>Continued platform use constitutes acceptance of new terms</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
@@ -437,7 +476,7 @@ export default function TermsPage() {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-white mb-6">Questions About These Terms?</h2>
             <p className="text-xl text-green-100 mb-8">
-              Contact us if you have any questions about these Terms of Service
+              Contact us for any questions about these Terms of Service or platform usage
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -467,7 +506,7 @@ export default function TermsPage() {
             <div className="mt-8 p-6 bg-white/10 rounded-lg">
               <p className="text-green-100">
                 By using FarmEase, you acknowledge that you have read, understood, and agree to be bound by these Terms
-                of Service.
+                of Service, including our AI data usage and agricultural service policies.
               </p>
             </div>
           </div>

@@ -3,29 +3,43 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FarmEaseLogo } from "@/components/logos/farmease-logo"
-import { Sprout, BarChart3, Users, MapPin, ArrowRight, CheckCircle, TrendingUp, MessageSquare, Globe, Smartphone } from 'lucide-react'
+import {
+  Sprout,
+  CloudRain,
+  Users,
+  TrendingUp,
+  ArrowRight,
+  CheckCircle,
+  Bot,
+  MapPin,
+  Bell,
+  Briefcase,
+  Handshake,
+  BarChart3,
+  Smartphone,
+} from "lucide-react"
 
 export default function HomePage() {
-  const features = [
+  const coreServices = [
     {
       icon: Sprout,
-      title: "Smart Crop Management",
-      description: "Add, track, and manage crops with fertilizer & pesticide suggestions based on government data",
+      title: "Crop Services",
+      description: "AI-powered crop and fertilizer recommendations based on environmental conditions",
     },
     {
-      icon: BarChart3,
-      title: "Real-Time Market Data",
-      description: "Daily regional market prices and geo-based market information for informed decisions",
+      icon: CloudRain,
+      title: "Weather Forecast",
+      description: "Real-time weather updates with 24-hour and 5-day forecasts for informed farming decisions",
     },
     {
       icon: Users,
-      title: "Labor Management",
-      description: "Connect farmers with laborers, manage hiring, and track work history efficiently",
+      title: "AgroBridge",
+      description: "Connect farmers with laborers through job postings and real-time notifications",
     },
     {
-      icon: MapPin,
-      title: "Geo-Based Services",
-      description: "Location-based matching for nearby markets, laborers, and agricultural services",
+      icon: TrendingUp,
+      title: "Market Prices",
+      description: "Access official government market prices across different regions in India",
     },
   ]
 
@@ -33,36 +47,54 @@ export default function HomePage() {
     {
       title: "Farmers",
       icon: "👨‍🌾",
-      description: "Manage crops, get market prices, hire laborers, and receive expert agricultural advice",
-      features: ["Crop Management", "Market Price Updates", "Labor Hiring", "Issue Reporting"]
+      description: "Complete agricultural management with AI recommendations and labor coordination",
+      features: ["AI Crop Recommendations", "Weather Forecasts", "Labor Management", "Market Price Access"],
     },
     {
-      title: "Laborers", 
-      icon: "👷‍♂️",
-      description: "Find work opportunities, connect with farmers, and manage job applications",
-      features: ["Job Discovery", "Geo-Based Matching", "Work Notifications", "Support Center"]
+      title: "Laborers",
+      icon: "🧑‍🏭",
+      description: "Find work opportunities and stay informed with weather and announcements",
+      features: ["Work Discovery", "Weather Updates", "Application Tracking", "Query Support"],
     },
     {
       title: "Employees",
-      icon: "🧑‍💼", 
-      description: "Manage queries, update market data, and monitor platform activities",
-      features: ["Query Management", "Market Updates", "Work Monitoring", "Notification Management"]
+      icon: "🧑‍💼",
+      description: "Manage communications, resolve queries, and monitor platform activities",
+      features: ["Announcement Management", "Query Resolution", "Task Monitoring", "Internal Ticketing"],
     },
     {
       title: "Administrators",
-      icon: "🛠️",
-      description: "Oversee platform operations, manage users, and analyze agricultural trends",
-      features: ["Platform Oversight", "Database Management", "Analytics", "Employee Management"]
-    }
+      icon: "🛡️",
+      description: "Platform oversight with analytics, user management, and strategic planning",
+      features: ["Platform Analytics", "User Management", "System Oversight", "Future Planning"],
+    },
   ]
 
-  const benefits = [
-    "Centralized agricultural platform for all stakeholders",
-    "Real-time market data and crop recommendations",
-    "Efficient labor hiring and management system",
-    "Geo-based services for nearby resources",
-    "Multilingual support (coming soon)",
-    "Enhanced transparency and operational efficiency",
+  const keyFeatures = [
+    "AI-powered crop and fertilizer recommendations",
+    "Real-time weather forecasting with location detection",
+    "Seamless farmer-laborer connection platform",
+    "Official government market price integration",
+    "Comprehensive notification system",
+    "Multi-role platform serving entire agricultural ecosystem",
+  ]
+
+  const futureFeatures = [
+    {
+      icon: Bot,
+      title: "AI Disease Detection",
+      description: "Advanced crop disease identification and treatment recommendations",
+    },
+    {
+      icon: BarChart3,
+      title: "Market Analytics",
+      description: "Comprehensive market trend analysis and price predictions",
+    },
+    {
+      icon: Smartphone,
+      title: "Mobile Application",
+      description: "Native mobile app with offline capabilities and sync features",
+    },
   ]
 
   return (
@@ -80,16 +112,16 @@ export default function HomePage() {
                 Welcome to <span className="text-green-600">FarmEase</span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 mb-4 leading-relaxed">
-                From soil to sale, FarmEase brings clarity, connectivity, and convenience to agriculture.
+                Comprehensive Agricultural Platform with AI-Powered Solutions
               </p>
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                A comprehensive digital ecosystem connecting farmers, laborers, employees, and administrators 
-                for smarter agricultural management.
+                Connecting farmers, laborers, employees, and administrators through intelligent crop management, weather
+                forecasting, and seamless agricultural coordination.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/signup">
                   <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
-                    Join FarmEase Today
+                    Start Your Journey
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -110,7 +142,7 @@ export default function HomePage() {
               <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <Image
                   src="/HeroImgForHomepage.jpg"
-                  alt="Smart Agricultural Technology Platform"
+                  alt="FarmEase Agricultural Technology Platform"
                   fill
                   className="object-cover"
                   priority
@@ -122,29 +154,32 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Core Features Section */}
+      {/* Core Services Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Core Platform Features</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Core Agricultural Services</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools designed to address key agricultural challenges
+              Intelligent solutions designed to address modern farming challenges
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => {
-              const IconComponent = feature.icon
+            {coreServices.map((service, index) => {
+              const IconComponent = service.icon
               return (
-                <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="text-center hover:shadow-lg transition-shadow duration-300 border-t-4 border-t-green-600"
+                >
                   <CardHeader>
                     <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
                       <IconComponent className="h-8 w-8 text-green-600" />
                     </div>
-                    <CardTitle className="text-xl font-semibold">{feature.title}</CardTitle>
+                    <CardTitle className="text-xl font-semibold">{service.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-gray-600">{feature.description}</CardDescription>
+                    <CardDescription className="text-gray-600">{service.description}</CardDescription>
                   </CardContent>
                 </Card>
               )
@@ -157,9 +192,11 @@ export default function HomePage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Built for Every Agricultural Stakeholder</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Built for Every Agricultural Stakeholder
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              FarmEase serves four distinct user roles, each with specialized features and capabilities
+              FarmEase serves four distinct user roles with specialized features and capabilities
             </p>
           </div>
 
@@ -191,30 +228,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why FarmEase Section */}
+      {/* Key Features Highlight */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Why Choose FarmEase?</h2>
               <p className="text-lg text-gray-600 mb-8">
-                Traditional agriculture faces challenges like lack of timely advice, inaccessible market data, 
-                and poor coordination. FarmEase solves these with a unified digital platform.
+                FarmEase addresses critical agricultural challenges through intelligent technology, seamless
+                connectivity, and comprehensive platform integration.
               </p>
 
               <div className="space-y-4">
-                {benefits.map((benefit, index) => (
+                {keyFeatures.map((feature, index) => (
                   <div key={index} className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span className="text-gray-700">{benefit}</span>
+                    <span className="text-gray-700">{feature}</span>
                   </div>
                 ))}
               </div>
 
               <div className="mt-8">
-                <Link href="/signup">
+                <Link href="/about">
                   <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                    Start Your Agricultural Journey
+                    Learn More About Us
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -222,35 +259,107 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              <Card className="text-center p-6">
+              <Card className="text-center p-6 bg-green-50">
                 <div className="text-3xl font-bold text-green-600 mb-2">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+                  <Bot className="h-8 w-8 mx-auto mb-2" />
+                  AI-Powered
+                </div>
+                <div className="text-gray-600">Recommendations</div>
+              </Card>
+              <Card className="text-center p-6 bg-blue-50">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  <CloudRain className="h-8 w-8 mx-auto mb-2" />
                   Real-Time
                 </div>
-                <div className="text-gray-600">Market Data</div>
+                <div className="text-gray-600">Weather Data</div>
               </Card>
-              <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  <Users className="h-8 w-8 mx-auto mb-2" />
-                  4 User
+              <Card className="text-center p-6 bg-purple-50">
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  <Bell className="h-8 w-8 mx-auto mb-2" />
+                  Smart
                 </div>
-                <div className="text-gray-600">Role Types</div>
+                <div className="text-gray-600">Notifications</div>
               </Card>
-              <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-green-600 mb-2">
+              <Card className="text-center p-6 bg-orange-50">
+                <div className="text-3xl font-bold text-orange-600 mb-2">
                   <MapPin className="h-8 w-8 mx-auto mb-2" />
-                  Geo-Based
+                  Location-Based
                 </div>
                 <div className="text-gray-600">Services</div>
               </Card>
-              <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  <Globe className="h-8 w-8 mx-auto mb-2" />
-                  Multilingual
-                </div>
-                <div className="text-gray-600">Support</div>
-              </Card>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Opportunities Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Join Our Growing Community</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Become part of the FarmEase ecosystem through career opportunities or strategic partnerships
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center mb-4">
+                  <div className="p-3 bg-blue-100 rounded-full mr-4">
+                    <Briefcase className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">Career Opportunities</CardTitle>
+                    <CardDescription className="text-lg mt-2">
+                      Join our mission to revolutionize agriculture
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-gray-700">
+                    Be part of building the future of agricultural technology and help farmers across India.
+                  </p>
+                  <Link href="/jobs">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      View Job Openings
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center mb-4">
+                  <div className="p-3 bg-green-100 rounded-full mr-4">
+                    <Handshake className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">Strategic Partnerships</CardTitle>
+                    <CardDescription className="text-lg mt-2">
+                      Collaborate to expand agricultural innovation
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-gray-700">
+                    Partner with FarmEase to create sustainable agricultural solutions and reach new markets.
+                  </p>
+                  <Link href="/partnerships">
+                    <Button className="w-full bg-green-600 hover:bg-green-700">
+                      Explore Partnerships
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -259,52 +368,36 @@ export default function HomePage() {
       <section className="py-20 bg-green-600">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Future Vision</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Future of FarmEase</h2>
             <p className="text-xl text-green-100 max-w-3xl mx-auto">
-              FarmEase is continuously evolving to bring more advanced features to agriculture
+              Continuous innovation to bring advanced agricultural technology to farmers
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-white/10 border-white/20 text-white">
-              <CardHeader className="text-center">
-                <Smartphone className="h-8 w-8 mx-auto mb-2 text-green-100" />
-                <CardTitle className="text-lg">Mobile App</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-green-100 text-sm">Android app with offline mode and sync capabilities</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {futureFeatures.map((feature, index) => {
+              const IconComponent = feature.icon
+              return (
+                <Card key={index} className="bg-white/10 border-white/20 text-white text-center">
+                  <CardHeader>
+                    <div className="mx-auto mb-4 p-3 bg-white/20 rounded-full w-fit">
+                      <IconComponent className="h-8 w-8 text-green-100" />
+                    </div>
+                    <CardTitle className="text-xl text-white">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-green-100">{feature.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
 
-            <Card className="bg-white/10 border-white/20 text-white">
-              <CardHeader className="text-center">
-                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-100" />
-                <CardTitle className="text-lg">Advanced Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-green-100 text-sm">Real-time dashboards for comprehensive yield statistics</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/10 border-white/20 text-white">
-              <CardHeader className="text-center">
-                <Globe className="h-8 w-8 mx-auto mb-2 text-green-100" />
-                <CardTitle className="text-lg">Blockchain Integration</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-green-100 text-sm">Secure contracts for labor agreements and transactions</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/10 border-white/20 text-white">
-              <CardHeader className="text-center">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-green-100" />
-                <CardTitle className="text-lg">Enhanced Communication</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-green-100 text-sm">Advanced messaging and notification systems</p>
-              </CardContent>
-            </Card>
+          <div className="text-center mt-12">
+            <p className="text-green-100 mb-6">
+              Additional upcoming features: Machinery Rental, Financial Services, Community Forums, and Multilingual
+              Support
+            </p>
           </div>
         </div>
       </section>
@@ -312,17 +405,17 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-20 bg-emerald-700 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Transform Agriculture?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to Transform Your Agricultural Journey?
+          </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join the digital agricultural revolution and connect with a comprehensive ecosystem designed for modern farming.
+            Join thousands of farmers, laborers, and agricultural professionals who trust FarmEase for their daily
+            operations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
-              <Button
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-              >
-                Get Started Free
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
+                Get Started Today
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
