@@ -27,6 +27,23 @@ interface Query {
   email?: string
   priority?: "low" | "normal" | "high" | "urgent"
   category?: string
+  updatedAt?: string
+}
+
+interface QueryFilter {
+  userType: { $in: Array<"farmer" | "labour"> }
+  submitterUsername?: string
+  status?: string
+  assignedEmployee?: string
+}
+
+interface QueryUpdate {
+  status?: "pending" | "in-progress" | "resolved"
+  response?: string
+  assignedEmployee?: string
+  priority?: "low" | "normal" | "high" | "urgent"
+  respondedAt?: string
+  updatedAt: string
 }
 
 // GET queries with filtering (only farmer/labour queries)
@@ -40,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase()
 
-    const query: any = { userType: { $in: ["farmer", "labour"] } } // Only user queries
+    const query: QueryFilter = { userType: { $in: ["farmer", "labour"] } } // Only user queries
 
     if (username) {
       query.submitterUsername = username
@@ -55,7 +72,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (userType && ["farmer", "labour"].includes(userType)) {
-      query.userType = userType
+      query.userType.$in = [userType] as Array<"farmer" | "labour">
     }
 
     console.log("Fetching queries with query:", query)
@@ -328,7 +345,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const updateData: any = {
+    const updateData: QueryUpdate = {
       updatedAt: new Date().toISOString(),
     }
 

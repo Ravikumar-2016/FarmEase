@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -47,7 +46,6 @@ interface Employee {
 }
 
 export default function ManageEmployees() {
-  const router = useRouter()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -102,7 +100,7 @@ export default function ManageEmployees() {
       if (response.ok && data.success) {
         setEmployees(data.employees)
       } else {
-        console.error("Failed to fetch employees:", data.error)
+        // Only show toast for fetch errors, since no field error possible here
         showMessage("Failed to fetch employees", "error")
       }
     } catch (error) {
@@ -182,16 +180,17 @@ export default function ManageEmployees() {
     if (!validateForm()) return
     
     setIsSubmitting(true)
-    
+    setErrors({}) // clear previous errors
+
     try {
-      const url = editingId ? "/api/employees" : "/api/employees"
+      const url = "/api/employees"
       const method = editingId ? "PUT" : "POST"
-      
+
       const body = {
         ...formData,
         ...(editingId ? { employeeId: editingId } : {})
       }
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -201,11 +200,32 @@ export default function ManageEmployees() {
       })
       
       const data = await response.json()
-      
+
+      // Handle validation errors for username/email already exists
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to save employee")
+        // Check for duplicate username/email error
+        if (data?.error?.toLowerCase().includes("username already exists")) {
+          setErrors(prev => ({ ...prev, username: "Username already exists" }))
+          return
+        }
+        if (data?.error?.toLowerCase().includes("email already exists")) {
+          setErrors(prev => ({ ...prev, email: "Email already exists" }))
+          return
+        }
+        // Handle other field validation errors from backend (optional)
+        if (data?.error?.toLowerCase().includes("password must be at least")) {
+          setErrors(prev => ({ ...prev, password: data.error }))
+          return
+        }
+        if (data?.error?.toLowerCase().includes("passwords do not match")) {
+          setErrors(prev => ({ ...prev, confirmPassword: data.error }))
+          return
+        }
+        // Fallback: show toast for other errors
+        showMessage(data.error || "Failed to save employee", "error")
+        return
       }
-      
+
       // Reset form and refresh data
       setFormData({
         username: "",
@@ -225,15 +245,14 @@ export default function ManageEmployees() {
       })
       setEditingId(null)
       setErrors({})
-      
+
       // Show success message
       showMessage(editingId ? "Employee updated successfully!" : "Employee added successfully!")
-      
+
       // Refresh employee list
       await fetchEmployees()
       
     } catch (error) {
-      console.error("Error saving employee:", error)
       showMessage(error instanceof Error ? error.message : "Failed to save employee", "error")
     } finally {
       setIsSubmitting(false)
@@ -304,7 +323,8 @@ export default function ManageEmployees() {
       const data = await response.json()
       
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to delete employee")
+        showMessage(data.error || "Failed to delete employee", "error")
+        return
       }
       
       // Show success message
@@ -314,7 +334,6 @@ export default function ManageEmployees() {
       await fetchEmployees()
       
     } catch (error) {
-      console.error("Error deleting employee:", error)
       showMessage(error instanceof Error ? error.message : "Failed to delete employee", "error")
     } finally {
       setIsSubmitting(false)

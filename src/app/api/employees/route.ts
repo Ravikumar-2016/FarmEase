@@ -3,6 +3,38 @@ import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import bcrypt from "bcryptjs"
 
+interface EmployeeQuery {
+  userType: string;
+  status?: string;
+  department?: string;
+  userRole?: string;
+}
+
+interface EmployeeUpdateData {
+  updatedAt: string;
+  username?: string;
+  fullName?: string;
+  email?: string;
+  mobile?: string;
+  designation?: string;
+  userRole?: string;
+  salary?: number;
+  department?: string;
+  dateOfJoining?: string;
+  area?: string;
+  state?: string;
+  zipcode?: string;
+  status?: string;
+  password?: string;
+  [key: string]: string | number | undefined; // Added index signature
+}
+
+interface DuplicateQuery {
+  _id: { $ne: ObjectId };
+  username?: string;
+  email?: string;
+}
+
 async function connectToDatabase() {
   try {
     const client = await clientPromise
@@ -24,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase()
 
-    const query: any = { userType: "employee" }
+    const query: EmployeeQuery = { userType: "employee" }
 
     if (status) query.status = status
     if (department) query.department = department
@@ -37,7 +69,7 @@ export async function GET(request: NextRequest) {
       .toArray()
 
     // Don't return password hashes to the client
-    const sanitizedEmployees = employees.map(({ password, ...rest }) => rest)
+    const sanitizedEmployees = employees.map(({ password: _password, ...rest }) => rest)
 
     return NextResponse.json({
       success: true,
@@ -147,7 +179,7 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to create employee")
     }
 
-    const { password, ...employeeWithoutPassword } = newEmployee
+    const { password: _password, ...employeeWithoutPassword } = newEmployee
 
     return NextResponse.json({
       success: true,
@@ -194,7 +226,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const updateData: any = {
+    const updateData: EmployeeUpdateData = {
       updatedAt: new Date().toISOString(),
     }
 
@@ -235,7 +267,7 @@ export async function PUT(request: NextRequest) {
 
     // Check for duplicate username/email
     if (updateData.username || updateData.email) {
-      const duplicateQuery: any = { _id: { $ne: employeeId } }
+      const duplicateQuery: DuplicateQuery = { _id: { $ne: employeeId } }
       
       if (updateData.username) {
         duplicateQuery.username = updateData.username.toLowerCase()

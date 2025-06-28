@@ -368,7 +368,6 @@ export default function ApplySync() {
                             <Calendar className="h-3 w-3" />
                             <span>Applied: {formatDate(application.submittedAt)}</span>
                           </div>
-                          <span className="text-gray-400">ID: {application._id.slice(-6)}</span>
                         </div>
                       </div>
                     </div>
@@ -484,7 +483,6 @@ export default function ApplySync() {
                             <Calendar className="h-3 w-3" />
                             <span>Requested: {formatDate(request.submittedAt)}</span>
                           </div>
-                          <span className="text-gray-400">ID: {request._id.slice(-6)}</span>
                         </div>
                       </div>
                     </div>

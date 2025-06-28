@@ -30,14 +30,12 @@ interface NotificationBellProps {
 export function NotificationBell({ userId, userType }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const isMobile = useIsMobile()
 
   const fetchNotifications = useCallback(async () => {
     try {
-      setLoading(true)
       const limit = showAll ? 50 : 30
       const response = await fetch(`/api/notifications?userId=${encodeURIComponent(userId)}&limit=${limit}`)
       if (!response.ok) throw new Error("Failed to fetch notifications")
@@ -47,8 +45,6 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
       setUnreadCount(data.unreadCount || 0)
     } catch (error) {
       console.error("Error fetching notifications:", error)
-    } finally {
-      setLoading(false)
     }
   }, [userId, showAll])
 
@@ -60,7 +56,6 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
     }
   }, [userId, fetchNotifications])
 
-  // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -72,7 +67,6 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
     return () => document.removeEventListener("keydown", handleEscape)
   }, [isOpen])
 
-  // Prevent body scroll when notifications are open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -173,17 +167,14 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
     return groups
   }
 
- const NotificationHeader = () => (
+  const NotificationHeader = () => (
     <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
       <div className="flex items-center gap-3">
         <Bell className="h-5 w-5 text-gray-600" />
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
-          {/* Add user type badge for mobile view */}
           {isMobile && (
-            <span className="text-xs text-gray-500">
-              {userType === 'farmer' ? 'Farmer' : 'Labour'} Account
-            </span>
+            <span className="text-xs text-gray-500">{userType === "farmer" ? "Farmer" : "Labour"} Account</span>
           )}
         </div>
         {unreadCount > 0 && (
@@ -255,7 +246,7 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
           <div className="text-center py-12">
             <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">No notifications yet</p>
-            <p className="text-sm text-gray-400 mt-1">You'll see updates about your work here</p>
+            <p className="text-sm text-gray-400 mt-1">You&apos;ll see updates about your work here</p>
           </div>
         )}
       </div>
@@ -280,7 +271,6 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
     </>
   )
 
-  // Mobile version with full-screen overlay
   if (isMobile) {
     return (
       <>
@@ -296,10 +286,8 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
           )}
         </Button>
 
-        {/* Mobile Full-Screen Overlay - Fixed to include header */}
         {isOpen && (
           <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            {/* Header is now properly included */}
             <NotificationHeader />
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full w-full">
@@ -313,7 +301,6 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
     )
   }
 
-  // Desktop version with professional dropdown
   return (
     <div className="relative">
       <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100" onClick={() => setIsOpen(!isOpen)}>
@@ -328,26 +315,16 @@ export function NotificationBell({ userId, userType }: NotificationBellProps) {
         )}
       </Button>
 
-      {/* Desktop Dropdown with Backdrop */}
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]" 
-            onClick={handleClose} 
-            aria-hidden="true"
-          />
-
-          {/* Dropdown Panel */}
+          <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]" onClick={handleClose} aria-hidden="true" />
           <div className="absolute right-0 top-full mt-2 z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden flex flex-col max-h-[80vh]">
             <NotificationHeader />
-
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-[400px] w-full">
                 <NotificationList />
               </ScrollArea>
             </div>
-
             <NotificationFooter />
           </div>
         </>

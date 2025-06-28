@@ -19,8 +19,6 @@ import {
   MapPin,
   AlertCircle,
   CheckCircle,
-  Shield,
-  Briefcase,
   Sprout,
   Hammer,
 } from "lucide-react"

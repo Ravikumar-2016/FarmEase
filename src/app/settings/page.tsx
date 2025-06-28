@@ -24,6 +24,15 @@ interface UserData {
   userType: string
 }
 
+type Toast = {
+  id: string;
+  message?: string;
+  title?: string;
+  type?: string;
+  variant?: string;
+  // add other properties you might need
+};
+
 export default function SettingsPage() {
   const { toasts, removeToast, success, error } = useToast()
   const [userData, setUserData] = useState<UserData>({
@@ -287,10 +296,23 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50 py-8 relative">
       {/* Toast Container */}
       <ToastContainer
-        toasts={toasts.map((toast: any) => ({
+        toasts={toasts.map((toast: Toast) => ({
           id: toast.id,
           message: toast.message || toast.title || "",
-          type: toast.type || toast.variant || "info",
+          type:
+            toast.type === "success" ||
+            toast.type === "error" ||
+            toast.type === "warning" ||
+            toast.type === "info" ||
+            toast.type === "destructive"
+              ? toast.type
+              : toast.variant === "success" ||
+                toast.variant === "error" ||
+                toast.variant === "warning" ||
+                toast.variant === "info" ||
+                toast.variant === "destructive"
+              ? toast.variant
+              : "info",
           // add other properties if needed
         }))}
         onRemove={removeToast}

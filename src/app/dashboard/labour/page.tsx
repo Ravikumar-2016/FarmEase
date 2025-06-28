@@ -26,8 +26,7 @@ import {
   Bell,
   CloudRain,
   Activity,
-  Search,
-  MessageSquare
+  Search
 } from "lucide-react"
 import { NotificationBell } from "@/components/ui/notifications-bell"
 
@@ -85,6 +84,15 @@ interface Announcement {
   updatedAt: string
   createdBy: string
 }
+
+type Toast = {
+  id: string;
+  message?: string;
+  title?: string;
+  type?: string;
+  variant?: string;
+  // add other properties you might need
+};
 
 export default function LabourDashboard() {
   const router = useRouter()
@@ -374,13 +382,27 @@ export default function LabourDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative">
       {/* Toast Container */}
       <ToastContainer
-        toasts={toasts.map((toast: any) => ({
-          id: toast.id,
-          message: toast.message || toast.title || "",
-          type: toast.type || toast.variant || "info",
-        }))}
-        onRemove={removeToast}
-      />
+              toasts={toasts.map((toast: Toast) => ({
+                id: toast.id,
+                message: toast.message || toast.title || "",
+                type:
+                  toast.type === "success" ||
+                  toast.type === "error" ||
+                  toast.type === "warning" ||
+                  toast.type === "info" ||
+                  toast.type === "destructive"
+                    ? toast.type
+                    : toast.variant === "success" ||
+                      toast.variant === "error" ||
+                      toast.variant === "warning" ||
+                      toast.variant === "info" ||
+                      toast.variant === "destructive"
+                    ? toast.variant
+                    : "info",
+                // add other properties if needed
+              }))}
+              onRemove={removeToast}
+            />
 
       {/* Withdrawal Confirmation Modal */}
       <ConfirmationModal

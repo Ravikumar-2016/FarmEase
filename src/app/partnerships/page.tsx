@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
+import Link from "next/link"
 import { useState } from "react"
-import { Handshake,Briefcase, ChevronDown, MapPin, Building2, Users } from "lucide-react"
+import { Handshake, Briefcase, ChevronDown, MapPin, Building2, Users } from "lucide-react"
 import { z } from "zod"
 
 const partnershipTypes = ["ngo", "logistics", "technology", "financial", "government", "research", "other"] as const
@@ -54,30 +54,19 @@ export default function PartnershipsPage() {
     setErrorMessage("")
 
     try {
-      // Validate form data
       const validatedData = formSchema.parse(formData)
       setErrors({})
 
-      // Submit to API
       const response = await fetch("/api/partnerships", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validatedData),
       })
 
       const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to submit partnership request")
 
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to submit partnership request")
-      }
-
-      setSuccessMessage(
-        "Thanks for reaching out! We’ve received your partnership request and will be in touch shortly."
-      )
-
-      // Reset form
+      setSuccessMessage("Thanks for reaching out! We’ve received your partnership request and will be in touch shortly.")
       setFormData({
         fullName: "",
         organizationName: "",
@@ -100,8 +89,7 @@ export default function PartnershipsPage() {
         setErrors(newErrors)
       } else {
         setErrorMessage(
-          "Submission Failed: " +
-            (err instanceof Error ? err.message : "An unexpected error occurred. Please try again."),
+          "Submission Failed: " + (err instanceof Error ? err.message : "An unexpected error occurred. Please try again.")
         )
       }
     } finally {
@@ -113,58 +101,54 @@ export default function PartnershipsPage() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    {/* Mobile Header (sm and below) */}
-    <div className="sm:hidden flex items-center justify-between">
-      <a href="/" className="text-blue-600 hover:text-blue-800">
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          className="h-6 w-6" 
-          viewBox="0 0 20 20" 
-          fill="currentColor"
-        >
-          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-        </svg>
-      </a>
-      
-      <div className="flex items-center space-x-2">
-        <div className="bg-green-600 p-1.5 rounded-lg">
-          <Building2 className="h-5 w-5 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="sm:hidden flex items-center justify-between">
+            <Link href="/" className="text-blue-600 hover:text-blue-800">
+              <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+            </Link>
+
+            <div className="flex items-center space-x-2">
+              <div className="bg-green-600 p-1.5 rounded-lg">
+                <Building2 className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">FarmEase</h1>
+            </div>
+
+            <Link href="/jobs" className="text-blue-600 hover:text-blue-800">
+              <Briefcase className="h-6 w-6" />
+            </Link>
+          </div>
+
+          <div className="hidden sm:flex items-center justify-between">
+            <Link href="/" className="flex items-center text-blue-600 hover:text-blue-800 transition-colors">
+              <svg className="h-5 w-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+              Back to Home
+            </Link>
+
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-600 p-2 rounded-lg">
+                <Building2 className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900">FarmEase</h1>
+                <p className="text-sm text-gray-600">Partnership Opportunities</p>
+              </div>
+            </div>
+
+            <Link
+              href="/jobs"
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <Briefcase className="h-5 w-5" />
+              <span>Explore Careers</span>
+            </Link>
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-gray-900">FarmEase</h1>
       </div>
-      
-      <a href="/jobs" className="text-blue-600 hover:text-blue-800">
-        <Briefcase className="h-6 w-6" />
-      </a>
-    </div>
-
-    {/* Desktop Header (sm and above) */}
-    <div className="hidden sm:flex items-center justify-between">
-      <a href="/" className="flex items-center text-blue-600 hover:text-blue-800 transition-colors">
-        <svg className="h-5 w-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-        </svg>
-        Back to Home
-      </a>
-
-      <div className="flex items-center space-x-3">
-        <div className="bg-green-600 p-2 rounded-lg">
-          <Building2 className="h-6 w-6 text-white" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">FarmEase</h1>
-          <p className="text-sm text-gray-600">Partnership Opportunities</p>
-        </div>
-      </div>
-
-      <a href="/jobs" className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-        <Briefcase className="h-5 w-5" />
-        <span>Explore Careers</span>
-      </a>
-    </div>
-  </div>
-</div>
 
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">

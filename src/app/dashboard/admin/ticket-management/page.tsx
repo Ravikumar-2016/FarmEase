@@ -1,9 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/text-area"
@@ -13,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   MessageSquare,
-  ArrowLeft,
   User,
   Calendar,
   CheckCircle,
@@ -26,7 +22,6 @@ import {
   PlayCircle,
   Filter,
 } from "lucide-react"
-import { ConfirmationModal } from "@/components/ui/confirmation-modal"
 
 interface Ticket {
   _id: string
@@ -44,23 +39,6 @@ interface Ticket {
   respondedAt?: string
 }
 
-interface Employee {
-  _id: string
-  fullName: string
-  designation: string
-  status: "active" | "inactive"
-}
-
-interface TicketManagementProps {
-  tickets: Ticket[]
-  employees: Employee[]
-  onRefresh: () => void
-  onShowDeleteConfirmation: (type: string, id: string, name: string) => void
-  submitting: boolean
-  onSuccess: (message: string) => void
-  onError: (message: string) => void
-}
-
 interface SuccessMessage {
   show: boolean
   message: string
@@ -73,17 +51,9 @@ interface DeleteConfirmation {
   title: string
 }
 
-const TicketManagement = ({
-  tickets,
-  employees,
-  onRefresh,
-  onShowDeleteConfirmation,
-  submitting,
-  onSuccess,
-  onError,
-}: TicketManagementProps) => {
-  const router = useRouter()
+export default function TicketManagement() {
   const mobileFormRef = useRef<HTMLDivElement>(null)
+  const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [ticketResponse, setTicketResponse] = useState("")
   const [ticketStatus, setTicketStatus] = useState<"open" | "in-progress" | "resolved">("in-progress")
@@ -96,6 +66,19 @@ const TicketManagement = ({
     ticketId: null,
     title: "",
   })
+
+  useEffect(() => {
+    fetchTickets()
+  }, [])
+
+  const fetchTickets = async () => {
+    // Fetch only employee tickets for admin
+    const params = new URLSearchParams()
+    params.append("userType", "employee")
+    const res = await fetch(`/api/tickets?${params.toString()}`)
+    const data = await res.json()
+    setTickets(data.tickets || [])
+  }
 
   const showMessage = (message: string, type: "success" | "error" = "success") => {
     setSuccessMessage({ show: true, message, type })
@@ -136,17 +119,17 @@ const TicketManagement = ({
       const data = await response.json()
 
       if (response.ok && data.success !== false) {
-        onSuccess("Ticket response sent successfully!")
+        showMessage("Ticket response sent successfully!")
         setSelectedTicket(null)
         setTicketResponse("")
         setTicketStatus("in-progress")
-        onRefresh()
+        fetchTickets()
       } else {
-        onError(data.error || "Failed to send response")
+        showMessage(data.error || "Failed to send response", "error")
       }
     } catch (error) {
       console.error("Error responding to ticket:", error)
-      onError("Failed to send response. Please try again.")
+      showMessage("Failed to send response. Please try again.", "error")
     } finally {
       setIsSubmitting(false)
     }
@@ -157,7 +140,6 @@ const TicketManagement = ({
     setTicketResponse(ticket.response || "")
     setTicketStatus(ticket.status)
 
-    // Scroll to top of the page on mobile
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" })
     }, 100)
@@ -178,9 +160,9 @@ const TicketManagement = ({
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      onRefresh()
+      fetchTickets()
       showMessage("Ticket moved to in-progress successfully!", "success")
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error updating ticket:", err)
       showMessage("Failed to update ticket status. Please try again.", "error")
     }
@@ -206,9 +188,9 @@ const TicketManagement = ({
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      onRefresh()
+      fetchTickets()
       showMessage("Ticket deleted successfully!", "success")
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting ticket:", err)
       showMessage("Failed to delete ticket. Please try again.", "error")
     } finally {
@@ -248,37 +230,6 @@ const TicketManagement = ({
     }
   }
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return <Badge className="bg-red-500 text-white">🚨 Urgent</Badge>
-      case "high":
-        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">⚡ High</Badge>
-      case "normal":
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">📋 Normal</Badge>
-      case "low":
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">📝 Low</Badge>
-      default:
-        return <Badge variant="secondary">{priority}</Badge>
-    }
-  }
-
-  const getCategoryBadge = (category: string) => {
-    const colors: { [key: string]: string } = {
-      technical: "bg-purple-100 text-purple-800 border-purple-200",
-      account: "bg-blue-100 text-blue-800 border-blue-200",
-      general: "bg-green-100 text-green-800 border-green-200",
-      billing: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      feature: "bg-indigo-100 text-indigo-800 border-indigo-200",
-    }
-    return (
-      <Badge className={`${colors[category.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200"} border`}>
-        {category}
-      </Badge>
-    )
-  }
-
-
   const getTicketActions = (ticket: Ticket) => {
     switch (ticket.status) {
       case "open":
@@ -303,7 +254,6 @@ const TicketManagement = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              // Check if mobile
               if (window.innerWidth < 1024) {
                 handleMobileRespond(ticket)
               } else {
@@ -360,7 +310,6 @@ const TicketManagement = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Success/Error Message */}
       {successMessage.show && (
         <div
           className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 ${
@@ -376,21 +325,17 @@ const TicketManagement = ({
         </div>
       )}
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">
-          {/* Tickets List */}
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <MessageSquare className="h-5 w-5" />
-                Support Tickets ({filteredTickets.length})
+                Employee Tickets ({filteredTickets.length})
               </CardTitle>
               <CardDescription>Click on a ticket to respond or manage</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Filters */}
               <div className="p-4 bg-gray-50 border-b">
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
@@ -569,7 +514,7 @@ const TicketManagement = ({
                         </Select>
                         {ticketStatus !== "resolved" && (
                           <p className="text-xs text-amber-600 mt-1">
-                            ⚠️ Response can only be submitted when status is "Resolved"
+                            ⚠️ Response can only be submitted when status is &quot;Resolved&quot;
                           </p>
                         )}
                       </div>
@@ -638,14 +583,14 @@ const TicketManagement = ({
           {selectedTicket && canEditTicket(selectedTicket) && (
             <div ref={mobileFormRef}>
               <Card className="shadow-lg border-0">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
                   <CardTitle className="text-lg">Respond to Ticket</CardTitle>
                   <CardDescription className="text-sm">Provide your response</CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">
                   <div className="space-y-4">
                     {/* Ticket Details */}
-                    <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                    <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
                       <h4 className="font-semibold text-sm mb-2">{selectedTicket.subject}</h4>
                       <p className="text-sm text-gray-700 mb-2">{selectedTicket.message}</p>
                       <p className="text-xs text-gray-500">
@@ -663,7 +608,7 @@ const TicketManagement = ({
                           value={ticketStatus}
                           onValueChange={(value: "open" | "in-progress" | "resolved") => setTicketStatus(value)}
                         >
-                          <SelectTrigger className="mt-1 h-12 border-gray-300 focus:border-green-500 focus:ring-green-500 bg-white">
+                          <SelectTrigger className="mt-1 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500 bg-white">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-[100]">
@@ -677,7 +622,7 @@ const TicketManagement = ({
                         </Select>
                         {ticketStatus !== "resolved" && (
                           <p className="text-xs text-amber-600 mt-1">
-                            ⚠️ Response can only be submitted when status is "Resolved"
+                            ⚠️ Response can only be submitted when status is &quot;Resolved&quot;
                           </p>
                         )}
                       </div>
@@ -701,7 +646,7 @@ const TicketManagement = ({
                         <Button
                           type="submit"
                           disabled={isSubmitting || ticketStatus !== "resolved"}
-                          className={`flex-1 ${ticketStatus === "resolved" ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"}`}
+                          className={`flex-1 ${ticketStatus === "resolved" ? "bg-orange-600 hover:bg-orange-700" : "bg-gray-400 cursor-not-allowed"}`}
                         >
                           {isSubmitting ? (
                             <>
@@ -733,16 +678,16 @@ const TicketManagement = ({
 
           {/* Tickets List */}
           <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MessageSquare className="h-5 w-5" />
-                Support Tickets ({filteredTickets.length})
+                Employee Tickets ({tickets.length})
               </CardTitle>
               <CardDescription className="text-sm">Tap on a ticket to manage</CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
-                {filteredTickets.map((ticket) => (
+                {tickets.map((ticket) => (
                   <div key={ticket._id} className="p-4 border rounded-lg bg-white">
                     <div className="flex items-start justify-between mb-3">
                       <h4 className="font-semibold text-sm">{ticket.subject}</h4>
@@ -751,10 +696,10 @@ const TicketManagement = ({
 
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ticket.message}</p>
 
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{ticket.submitterName}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-1000">{ticket.submitterName}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="text-xs text-gray-500">{formatDate(ticket.submittedAt)}</span>
                     </div>
 
@@ -762,13 +707,11 @@ const TicketManagement = ({
                   </div>
                 ))}
 
-                {filteredTickets.length === 0 && (
+                {tickets.length === 0 && (
                   <div className="text-center py-8">
                     <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No tickets found</p>
-                    <p className="text-sm text-gray-400">
-                      {tickets.length === 0 ? "Support tickets will appear here" : "Try adjusting your filters"}
-                    </p>
+                    <p className="text-gray-500">No tickets yet</p>
+                    <p className="text-sm text-gray-400">Employee tickets will appear here</p>
                   </div>
                 )}
               </div>
@@ -778,24 +721,35 @@ const TicketManagement = ({
       </div>
 
       {/* Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={deleteConfirmation.isOpen}
-        onClose={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            ticketId: null,
-            title: "",
-          })
-        }
-        onConfirm={handleDeleteTicket}
-        title="Delete Ticket"
-        description={`Are you sure you want to delete the ticket "${deleteConfirmation.title}"? This action cannot be undone.`}
-        type="delete"
-        confirmText="Delete Ticket"
-        isLoading={false}
-      />
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-red-100 rounded-full mr-3">
+                  <Trash2 className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Ticket</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete the ticket &quot;{deleteConfirmation.title}&quot;? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirmation({ isOpen: false, ticketId: null, title: "" })}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleDeleteTicket} className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+                  Delete Ticket
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
-export default TicketManagement

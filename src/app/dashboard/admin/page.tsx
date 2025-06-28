@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format } from "date-fns"
 import { 
@@ -14,10 +12,8 @@ import {
   MessageSquare, 
   FileText, 
   Shield,
-  ChevronRight,
   CalendarDays,
   User,
-  Settings,
   Activity,
   Briefcase,
   HelpCircle,
@@ -101,49 +97,6 @@ export default function AdminDashboard() {
 
   const today = format(new Date(), "EEEE, MMMM d, yyyy")
 
-  const dashboardSections = [
-    {
-      title: "User Management",
-      description: "Manage all platform users and permissions",
-      icon: Users,
-      path: "/dashboard/admin/employees",
-      color: "from-indigo-500 to-indigo-600",
-      stats: `${stats.employees} Employees`,
-      bgColor: "bg-indigo-50",
-      iconColor: "text-indigo-600",
-    },
-    {
-      title: "Partner Network",
-      description: "Manage organizational partnerships",
-      icon: Building,
-      path: "/dashboard/admin/partners",
-      color: "from-teal-500 to-teal-600",
-      stats: "12 Active Partners",
-      bgColor: "bg-teal-50",
-      iconColor: "text-teal-600",
-    },
-    {
-      title: "Support Center",
-      description: "Handle user queries and tickets",
-      icon: MessageSquare,
-      path: "/dashboard/admin/tickets",
-      color: "from-rose-500 to-rose-600",
-      stats: `${stats.openTickets} Open Tickets`,
-      bgColor: "bg-rose-50",
-      iconColor: "text-rose-600",
-    },
-    {
-      title: "Platform Analytics",
-      description: "View system metrics and insights",
-      icon: BarChart3,
-      path: "/dashboard/admin/stats",
-      color: "from-amber-500 to-amber-600",
-      stats: "Performance Dashboard",
-      bgColor: "bg-amber-50",
-      iconColor: "text-amber-600",
-    },
-  ]
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50 flex items-center justify-center">
@@ -182,7 +135,7 @@ export default function AdminDashboard() {
             <div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-lg shadow-sm">
               <User className="h-5 w-5 text-gray-500" />
               <div className="text-right">
-                <p className="text-sm text-gray-600">Admin User</p>
+                <p className="text-sm text-gray-600">Welcome Back</p>
                 <p className="font-bold text-gray-900">{currentUser}</p>
               </div>
             </div>
@@ -272,13 +225,15 @@ export default function AdminDashboard() {
                     <PieChart className="h-5 w-5" />
                     <span className="text-xs font-medium">Overview</span>
                   </TabsTrigger>
+
                   <TabsTrigger 
-                    value="apply-sync" 
+                    value="stats" 
                     className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
                   >
-                    <FileText className="h-5 w-5" />
-                    <span className="text-xs font-medium">Applications</span>
+                    <BarChart3 className="h-5 w-5" />
+                    <span className="text-xs font-medium">Stats</span>
                   </TabsTrigger>
+                  
                   <TabsTrigger 
                     value="employees" 
                     className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
@@ -286,6 +241,9 @@ export default function AdminDashboard() {
                     <Users className="h-5 w-5" />
                     <span className="text-xs font-medium">Employees</span>
                   </TabsTrigger>
+
+                  
+                  
                   <TabsTrigger 
                     value="partners" 
                     className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
@@ -294,29 +252,31 @@ export default function AdminDashboard() {
                     <span className="text-xs font-medium">Partners</span>
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="stats" 
-                    className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
-                  >
-                    <BarChart3 className="h-5 w-5" />
-                    <span className="text-xs font-medium">Stats</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
                     value="tickets" 
                     className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
                   >
                     <MessageSquare className="h-5 w-5" />
                     <span className="text-xs font-medium">Tickets</span>
                   </TabsTrigger>
+
+
+                  <TabsTrigger 
+                    value="apply-sync" 
+                    className="py-4 flex flex-col items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600"
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span className="text-xs font-medium">Applications</span>
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
               <div className="p-6">
                 <TabsContent value="overview">
-                  <Overview onTabChange={setActiveTab} />
+                  <Overview />
                 </TabsContent>
 
-                <TabsContent value="apply-sync">
-                  <ApplySync />
+                <TabsContent value="stats">
+                  <Stats stats={stats} />
                 </TabsContent>
 
                 <TabsContent value="employees">
@@ -327,10 +287,6 @@ export default function AdminDashboard() {
                   <ManagePartners />
                 </TabsContent>
 
-                <TabsContent value="stats">
-                  <Stats stats={stats} />
-                </TabsContent>
-
                 <TabsContent value="tickets">
                   <TicketManagement
                     tickets={[]} // Replace with actual tickets data
@@ -339,6 +295,10 @@ export default function AdminDashboard() {
                     onShowDeleteConfirmation={() => {}} // Replace with actual handler
                     // Add other required props with appropriate values
                   />
+                </TabsContent>
+
+                   <TabsContent value="apply-sync">
+                  <ApplySync />
                 </TabsContent>
               </div>
             </Tabs>

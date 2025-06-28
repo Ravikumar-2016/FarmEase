@@ -1,16 +1,15 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/text-area"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import type React from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/text-area";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MessageSquare,
   ArrowLeft,
@@ -24,161 +23,156 @@ import {
   Eye,
   Trash2,
   PlayCircle,
-} from "lucide-react"
+} from "lucide-react";
 
 interface Query {
-  _id: string
-  queryId: string
-  submitterName: string
-  submitterUsername: string
-  userType: "farmer" | "labour"
-  subject: string
-  message: string
-  status: "pending" | "in-progress" | "resolved"
-  assignedEmployee?: string
-  response?: string
-  submittedAt: string
-  respondedAt?: string
+  _id: string;
+  queryId: string;
+  submitterName: string;
+  submitterUsername: string;
+  userType: "farmer" | "labour";
+  subject: string;
+  message: string;
+  status: "pending" | "in-progress" | "resolved";
+  assignedEmployee?: string;
+  response?: string;
+  submittedAt: string;
+  respondedAt?: string;
 }
 
 interface SuccessMessage {
-  show: boolean
-  message: string
-  type: "success" | "error"
+  show: boolean;
+  message: string;
+  type: "success" | "error";
 }
 
 interface DeleteConfirmation {
-  isOpen: boolean
-  queryId: string | null
-  title: string
+  isOpen: boolean;
+  queryId: string | null;
+  title: string;
 }
 
 export default function QueryManagementPage() {
-  const router = useRouter()
-  const mobileFormRef = useRef<HTMLDivElement>(null)
-  const [queries, setQueries] = useState<Query[]>([])
-  const [loading, setLoading] = useState(true)
-  const [currentUser, setCurrentUser] = useState("")
-  const [selectedQuery, setSelectedQuery] = useState<Query | null>(null)
-  const [queryResponse, setQueryResponse] = useState("")
-  const [queryStatus, setQueryStatus] = useState<"pending" | "in-progress" | "resolved">("in-progress")
-  const [submitting, setSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<SuccessMessage>({ show: false, message: "", type: "success" })
+  const router = useRouter();
+  const mobileFormRef = useRef<HTMLDivElement>(null);
+  const [queries, setQueries] = useState<Query[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState("");
+  const [selectedQuery, setSelectedQuery] = useState<Query | null>(null);
+  const [queryResponse, setQueryResponse] = useState("");
+  const [queryStatus, setQueryStatus] = useState<"pending" | "in-progress" | "resolved">("in-progress");
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<SuccessMessage>({ show: false, message: "", type: "success" });
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
     isOpen: false,
     queryId: null,
     title: "",
-  })
+  });
+
+  const showMessage = useCallback((message: string, type: "success" | "error" = "success") => {
+    setSuccessMessage({ show: true, message, type });
+    setTimeout(() => {
+      setSuccessMessage({ show: false, message: "", type: "success" });
+    }, 4000);
+  }, []);
+
+  const fetchQueries = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/queries");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setQueries(data.queries || []);
+    } catch (err) {
+      console.error("Error fetching queries:", err);
+      showMessage("Failed to fetch queries. Please try again.", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showMessage]);
 
   useEffect(() => {
-    const userType = localStorage.getItem("userType")
-    const username = localStorage.getItem("username")
+    const userType = localStorage.getItem("userType");
+    const username = localStorage.getItem("username");
 
     if (!userType || !username || userType !== "employee") {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
 
-    setCurrentUser(username)
-    fetchQueries()
-  }, [router])
+    setCurrentUser(username);
+    fetchQueries();
+  }, [router, fetchQueries]);
 
-  const fetchQueries = async () => {
+  const handleQueryResponse = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedQuery) return;
+
+    if (queryResponse.length < 10) {
+      showMessage("Response must be at least 10 characters long", "error");
+      return;
+    }
+
+    if (queryStatus !== "resolved") {
+      showMessage("Cannot submit response. Please mark the query as resolved before submitting.", "error");
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
-      setLoading(true)
-      const response = await fetch("/api/queries")
+      const response = await fetch("/api/queries", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          queryId: selectedQuery.queryId,
+          status: queryStatus,
+          response: queryResponse,
+          assignedEmployee: currentUser,
+        }),
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json()
-      setQueries(data.queries || [])
-    } catch (err: any) {
-      console.error("Error fetching queries:", err)
-      showMessage("Failed to fetch queries. Please try again.", "error")
+
+      setQueries((prevQueries) =>
+        prevQueries.map((query) =>
+          query.queryId === selectedQuery.queryId
+            ? {
+                ...query,
+                status: "resolved",
+                response: queryResponse,
+                assignedEmployee: currentUser,
+                respondedAt: new Date().toISOString(),
+              }
+            : query
+        )
+      );
+
+      setSelectedQuery(null);
+      setQueryResponse("");
+      setQueryStatus("in-progress");
+      showMessage("Query response submitted successfully!", "success");
+    } catch (err) {
+      console.error("Error responding to query:", err);
+      showMessage("Failed to submit query response. Please try again.", "error");
     } finally {
-      setLoading(false)
+      setSubmitting(false);
     }
-  }
-
-  const showMessage = (message: string, type: "success" | "error" = "success") => {
-    setSuccessMessage({ show: true, message, type })
-    setTimeout(() => {
-      setSuccessMessage({ show: false, message: "", type: "success" })
-    }, 4000)
-  }
-
- const handleQueryResponse = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!selectedQuery) return;
-
-  // Validation: Check response length
-  if (queryResponse.length < 10) {
-    showMessage("Response must be at least 10 characters long", "error");
-    return;
-  }
-
-  // Validation: Only allow submission if status is "resolved"
-  if (queryStatus !== "resolved") {
-    showMessage("Cannot submit response. Please mark the query as resolved before submitting.", "error");
-    return;
-  }
-
-  setSubmitting(true);
-
-  try {
-    const response = await fetch("/api/queries", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        queryId: selectedQuery.queryId,
-        status: queryStatus,
-        response: queryResponse,
-        assignedEmployee: currentUser,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    // Update the local state to mark the query as resolved
-    setQueries(prevQueries =>
-      prevQueries.map(query =>
-        query.queryId === selectedQuery.queryId
-          ? {
-              ...query,
-              status: "resolved",
-              response: queryResponse,
-              assignedEmployee: currentUser,
-              respondedAt: new Date().toISOString(),
-            }
-          : query
-      )
-    );
-
-    // Clear the form and selected query
-    setSelectedQuery(null);
-    setQueryResponse("");
-    setQueryStatus("in-progress");
-    showMessage("Query response submitted successfully!", "success");
-  } catch (err: any) {
-    console.error("Error responding to query:", err);
-    showMessage("Failed to submit query response. Please try again.", "error");
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleMobileRespond = (query: Query) => {
-    setSelectedQuery(query)
-    setQueryResponse(query.response || "")
-    setQueryStatus(query.status)
+    setSelectedQuery(query);
+    setQueryResponse(query.response || "");
+    setQueryStatus(query.status);
 
-    // Scroll to top of the page on mobile
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }, 100)
-  }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
+  };
 
   const handleMoveToInProgress = async (query: Query) => {
     try {
@@ -190,53 +184,53 @@ export default function QueryManagementPage() {
           status: "in-progress",
           assignedEmployee: currentUser,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      fetchQueries()
-      showMessage("Query moved to in-progress successfully!", "success")
-    } catch (err: any) {
-      console.error("Error updating query:", err)
-      showMessage("Failed to update query status. Please try again.", "error")
+      fetchQueries();
+      showMessage("Query moved to in-progress successfully!", "success");
+    } catch (err) {
+      console.error("Error updating query:", err);
+      showMessage("Failed to update query status. Please try again.", "error");
     }
-  }
+  };
 
   const showDeleteConfirmation = (queryId: string, title: string) => {
     setDeleteConfirmation({
       isOpen: true,
       queryId,
       title,
-    })
-  }
+    });
+  };
 
   const handleDeleteQuery = async () => {
-    if (!deleteConfirmation.queryId) return
+    if (!deleteConfirmation.queryId) return;
 
     try {
       const response = await fetch(`/api/queries?queryId=${deleteConfirmation.queryId}`, {
         method: "DELETE",
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      fetchQueries()
-      showMessage("Query deleted successfully!", "success")
-    } catch (err: any) {
-      console.error("Error deleting query:", err)
-      showMessage("Failed to delete query. Please try again.", "error")
+      fetchQueries();
+      showMessage("Query deleted successfully!", "success");
+    } catch (err) {
+      console.error("Error deleting query:", err);
+      showMessage("Failed to delete query. Please try again.", "error");
     } finally {
       setDeleteConfirmation({
         isOpen: false,
         queryId: null,
         title: "",
-      })
+      });
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -246,25 +240,25 @@ export default function QueryManagementPage() {
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
-        )
+        );
       case "in-progress":
         return (
           <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
             <AlertCircle className="h-3 w-3 mr-1" />
             In Progress
           </Badge>
-        )
+        );
       case "resolved":
         return (
           <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
             <CheckCircle className="h-3 w-3 mr-1" />
             Resolved
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }
+  };
 
   const getUserTypeBadge = (userType: string) => {
     return (
@@ -278,8 +272,8 @@ export default function QueryManagementPage() {
       >
         {userType === "farmer" ? "👨‍🌾 Farmer" : "👷 Labour"}
       </Badge>
-    )
-  }
+    );
+  };
 
   const getQueryActions = (query: Query) => {
     switch (query.status) {
@@ -289,29 +283,28 @@ export default function QueryManagementPage() {
             size="sm"
             variant="outline"
             onClick={(e) => {
-              e.stopPropagation()
-              handleMoveToInProgress(query)
+              e.stopPropagation();
+              handleMoveToInProgress(query);
             }}
             className="bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
           >
             <PlayCircle className="h-4 w-4 mr-1" />
             Start Progress
           </Button>
-        )
+        );
       case "in-progress":
         return (
           <Button
             size="sm"
             variant="outline"
             onClick={(e) => {
-              e.stopPropagation()
-              // Check if mobile
+              e.stopPropagation();
               if (window.innerWidth < 1024) {
-                handleMobileRespond(query)
+                handleMobileRespond(query);
               } else {
-                setSelectedQuery(query)
-                setQueryResponse(query.response || "")
-                setQueryStatus(query.status)
+                setSelectedQuery(query);
+                setQueryResponse(query.response || "");
+                setQueryStatus(query.status);
               }
             }}
             className="bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
@@ -319,30 +312,30 @@ export default function QueryManagementPage() {
             <Send className="h-4 w-4 mr-1" />
             Respond
           </Button>
-        )
+        );
       case "resolved":
         return (
           <Button
             size="sm"
             variant="outline"
             onClick={(e) => {
-              e.stopPropagation()
-              showDeleteConfirmation(query.queryId, query.subject)
+              e.stopPropagation();
+              showDeleteConfirmation(query.queryId, query.subject);
             }}
             className="bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
           </Button>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const canEditQuery = (query: Query) => {
-    return query.status === "in-progress"
-  }
+    return query.status === "in-progress";
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -351,8 +344,8 @@ export default function QueryManagementPage() {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   if (loading) {
     return (
@@ -362,12 +355,11 @@ export default function QueryManagementPage() {
           <p className="text-gray-600">Loading Queries...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Success/Error Message */}
       {successMessage.show && (
         <div
           className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 ${
@@ -383,74 +375,59 @@ export default function QueryManagementPage() {
         </div>
       )}
 
-      {/* Desktop Header */}
       <div className="hidden lg:block bg-white shadow-sm border-b">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div className="flex items-center justify-between">
-      {/* Back Button on Left */}
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="ghost"
-          onClick={() => router.push("/dashboard/employee")}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Dashboard</span>
-        </Button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/dashboard/employee")}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <MessageSquare className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900">Query Management</h1>
+                <p className="text-gray-600">Respond to user queries and support requests</p>
+              </div>
+            </div>
+            <div className="w-32"></div>
+          </div>
+        </div>
       </div>
 
-      {/* Center Icon and Title */}
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <MessageSquare className="h-6 w-6 text-green-600" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Query Management</h1>
-          <p className="text-gray-600">Respond to user queries and support requests</p>
-        </div>
-      </div>
-
-      {/* Right Spacer */}
-      <div className="w-32"></div>
-    </div>
-  </div>
-</div>
-
-      {/* Mobile Header */}
       <div className="lg:hidden bg-white shadow-sm border-b">
-  <div className="px-4 py-4">
-    <div className="flex items-center justify-center space-x-4">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.push("/dashboard/employee")}
-        className="flex items-center space-x-1 p-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Back</span>
-      </Button>
-
-      {/* Icon + Title */}
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <MessageSquare className="h-5 w-5 text-green-600" />
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard/employee")}
+              className="flex items-center space-x-1 p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-green-600" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900">Query Management</h1>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Respond to user queries
+          </p>
         </div>
-        <h1 className="text-lg font-bold text-gray-900">Query Management</h1>
       </div>
-    </div>
 
-    {/* Subtitle centered below */}
-    <p className="text-sm text-gray-600 text-center mt-2">
-      Respond to user queries
-    </p>
-  </div>
-</div>
-
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">
-          {/* Queries List */}
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -472,9 +449,9 @@ export default function QueryManagementPage() {
                       }`}
                       onClick={() => {
                         if (canEditQuery(query)) {
-                          setSelectedQuery(query)
-                          setQueryResponse(query.response || "")
-                          setQueryStatus(query.status)
+                          setSelectedQuery(query);
+                          setQueryResponse(query.response || "");
+                          setQueryStatus(query.status);
                         }
                       }}
                     >
@@ -488,9 +465,7 @@ export default function QueryManagementPage() {
                           {getQueryActions(query)}
                         </div>
                       </div>
-
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">{query.message}</p>
-
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
@@ -501,13 +476,11 @@ export default function QueryManagementPage() {
                           <span>{formatDate(query.submittedAt)}</span>
                         </div>
                       </div>
-
                       {query.assignedEmployee && (
                         <div className="mt-2 text-xs text-blue-600">Assigned to: {query.assignedEmployee}</div>
                       )}
                     </div>
                   ))}
-
                   {queries.length === 0 && (
                     <div className="text-center py-12">
                       <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -520,7 +493,6 @@ export default function QueryManagementPage() {
             </CardContent>
           </Card>
 
-          {/* Query Response Form */}
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
               <CardTitle className="text-xl">{selectedQuery ? "Respond to Query" : "Select a Query"}</CardTitle>
@@ -533,7 +505,6 @@ export default function QueryManagementPage() {
             <CardContent className="p-6">
               {selectedQuery ? (
                 <div className="space-y-6">
-                  {/* Query Details */}
                   <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-green-500">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-semibold text-lg">{selectedQuery.subject}</h4>
@@ -549,8 +520,6 @@ export default function QueryManagementPage() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Existing Response (if any) */}
                   {selectedQuery.response && (
                     <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
                       <h5 className="font-semibold text-blue-900 mb-2">Previous Response:</h5>
@@ -562,8 +531,6 @@ export default function QueryManagementPage() {
                       )}
                     </div>
                   )}
-
-                  {/* Response Form - Only show for in-progress queries */}
                   {canEditQuery(selectedQuery) ? (
                     <form onSubmit={handleQueryResponse} className="space-y-4">
                       <div>
@@ -588,11 +555,10 @@ export default function QueryManagementPage() {
                         </Select>
                         {queryStatus !== "resolved" && (
                           <p className="text-xs text-amber-600 mt-1">
-                            ⚠️ Response can only be submitted when status is "Resolved"
+                            &#9888;&#65039; Response can only be submitted when status is &quot;Resolved&quot;
                           </p>
                         )}
                       </div>
-
                       <div>
                         <Label htmlFor="response" className="text-sm font-medium text-gray-700">
                           Response *
@@ -607,7 +573,6 @@ export default function QueryManagementPage() {
                           required
                         />
                       </div>
-
                       <Button
                         type="submit"
                         disabled={submitting || queryStatus !== "resolved"}
@@ -651,9 +616,7 @@ export default function QueryManagementPage() {
           </Card>
         </div>
 
-        {/* Mobile Layout */}
         <div className="lg:hidden space-y-6">
-          {/* Mobile Response Form - Show at top when query is selected */}
           {selectedQuery && canEditQuery(selectedQuery) && (
             <div ref={mobileFormRef}>
               <Card className="shadow-lg border-0">
@@ -663,7 +626,6 @@ export default function QueryManagementPage() {
                 </CardHeader>
                 <CardContent className="p-4">
                   <div className="space-y-4">
-                    {/* Query Details */}
                     <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-green-500">
                       <h4 className="font-semibold text-sm mb-2">{selectedQuery.subject}</h4>
                       <p className="text-sm text-gray-700 mb-2">{selectedQuery.message}</p>
@@ -672,7 +634,6 @@ export default function QueryManagementPage() {
                       </p>
                     </div>
 
-                    {/* Response Form */}
                     <form onSubmit={handleQueryResponse} className="space-y-4">
                       <div>
                         <Label htmlFor="mobile-status" className="text-sm font-medium text-gray-700">
@@ -696,11 +657,10 @@ export default function QueryManagementPage() {
                         </Select>
                         {queryStatus !== "resolved" && (
                           <p className="text-xs text-amber-600 mt-1">
-                            ⚠️ Response can only be submitted when status is "Resolved"
+                            &#9888;&#65039; Response can only be submitted when status is &quot;Resolved&quot;
                           </p>
                         )}
                       </div>
-
                       <div>
                         <Label htmlFor="mobile-response" className="text-sm font-medium text-gray-700">
                           Response *
@@ -715,7 +675,6 @@ export default function QueryManagementPage() {
                           required
                         />
                       </div>
-
                       <div className="flex gap-2">
                         <Button
                           type="submit"
@@ -745,7 +704,6 @@ export default function QueryManagementPage() {
             </div>
           )}
 
-          {/* Queries List */}
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -762,9 +720,7 @@ export default function QueryManagementPage() {
                       <h4 className="font-semibold text-sm">{query.subject}</h4>
                       {getStatusBadge(query.status)}
                     </div>
-
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{query.message}</p>
-
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         {getUserTypeBadge(query.userType)}
@@ -772,11 +728,9 @@ export default function QueryManagementPage() {
                       </div>
                       <span className="text-xs text-gray-500">{formatDate(query.submittedAt)}</span>
                     </div>
-
                     <div className="flex justify-end">{getQueryActions(query)}</div>
                   </div>
                 ))}
-
                 {queries.length === 0 && (
                   <div className="text-center py-8">
                     <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -790,7 +744,6 @@ export default function QueryManagementPage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirmation.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
@@ -802,7 +755,7 @@ export default function QueryManagementPage() {
                 <h3 className="text-lg font-semibold text-gray-900">Delete Query</h3>
               </div>
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete the query "{deleteConfirmation.title}"? This action cannot be undone.
+                Are you sure you want to delete the query &quot;{deleteConfirmation.title}&quot;? This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <Button
@@ -821,5 +774,5 @@ export default function QueryManagementPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

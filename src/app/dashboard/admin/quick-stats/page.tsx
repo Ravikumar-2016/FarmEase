@@ -5,14 +5,16 @@ import { Badge } from "@/components/ui/badge"
 import {
   Users,
   UserCheck,
-  Building,
+  Sprout,
   TrendingUp,
-  Activity,
   Clock,
   BarChart3,
   Target,
   Zap,
-  Info,
+  Tractor,
+  MessageSquare,
+  Award,
+  Briefcase,
 } from "lucide-react"
 
 interface UserStats {
@@ -28,319 +30,298 @@ interface UserStats {
   openTickets: number
 }
 
-interface StatsProps {
-  stats: UserStats
-}
+export default function AdminQuickStatsPage() {
+  // Demo data - replace with real API data
+  const stats: UserStats = {
+    totalUsers: 15420,
+    farmers: 8950,
+    labourers: 5200,
+    employees: 1270,
+    activeUsers: 12340,
+    newUsersThisMonth: 890,
+    totalQueries: 2450,
+    resolvedQueries: 2301,
+    totalTickets: 156,
+    openTickets: 23,
+  }
 
-export default function Stats({ stats }: StatsProps) {
   const queryResolutionRate =
     stats.totalQueries > 0 ? Math.round((stats.resolvedQueries / stats.totalQueries) * 100) : 0
   const activeUserRate = stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0
 
-  const getPerformanceBadge = (value: number, threshold: number) => {
-    if (value >= threshold) {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Excellent</Badge>
-    } else if (value >= threshold * 0.8) {
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Good</Badge>
-    } else {
-      return <Badge className="bg-red-100 text-red-800 border-red-200">Needs Attention</Badge>
-    }
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-700">Total Users</CardTitle>
-            <Users className="h-5 w-5 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-900">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />+{stats.newUsersThisMonth} this month
-            </p>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">FarmEase Platform Statistics</h1>
+          <p className="text-sm sm:text-base text-slate-600">Real-time insights and performance metrics</p>
+        </div>
 
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-green-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700">Active Users</CardTitle>
-            <UserCheck className="h-5 w-5 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-900">{stats.activeUsers.toLocaleString()}</div>
-            <p className="text-xs text-green-600 mt-2">{activeUserRate}% of total users</p>
-          </CardContent>
-        </Card>
+        {/* Primary Stats - Updated for mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              title: "Total Users",
+              value: stats.totalUsers,
+              icon: Users,
+              bg: "from-blue-500 to-blue-600",
+              secondary: `+${stats.newUsersThisMonth} this month`,
+              iconColor: "text-blue-200"
+            },
+            {
+              title: "Active Users",
+              value: stats.activeUsers,
+              icon: UserCheck,
+              bg: "from-emerald-500 to-emerald-600",
+              secondary: `${activeUserRate}% engagement`,
+              iconColor: "text-emerald-200"
+            },
+            {
+              title: "Farmers",
+              value: stats.farmers,
+              icon: Sprout,
+              bg: "from-orange-500 to-orange-600",
+              secondary: `${Math.round((stats.farmers / stats.totalUsers) * 100)}% of users`,
+              iconColor: "text-orange-200"
+            },
+            {
+              title: "Labourers",
+              value: stats.labourers,
+              icon: Tractor,
+              bg: "from-purple-500 to-purple-600",
+              secondary: `${Math.round((stats.labourers / stats.totalUsers) * 100)}% of users`,
+              iconColor: "text-purple-200"
+            }
+          ].map((stat, index) => (
+            <Card key={index} className={`shadow-lg border-0 bg-gradient-to-br ${stat.bg} text-white`}>
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">{stat.title}</CardTitle>
+                <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.iconColor}`} />
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl sm:text-3xl font-bold">{stat.value.toLocaleString()}</div>
+                <p className="text-xs mt-1 opacity-90">{stat.secondary}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700">Farmers</CardTitle>
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-900">{stats.farmers.toLocaleString()}</div>
-            <p className="text-xs text-purple-600 mt-2">
-              {stats.totalUsers > 0 ? Math.round((stats.farmers / stats.totalUsers) * 100) : 0}% of users
-            </p>
-          </CardContent>
-        </Card>
+        {/* Platform Activity - Updated for mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              title: "Total Queries",
+              value: stats.totalQueries,
+              icon: MessageSquare,
+              bg: "from-indigo-500 to-indigo-600",
+              secondary: "User support requests",
+              iconColor: "text-indigo-200"
+            },
+            {
+              title: "Resolved Queries",
+              value: stats.resolvedQueries,
+              icon: Award,
+              bg: "from-teal-500 to-teal-600",
+              secondary: `${queryResolutionRate}% resolved`,
+              iconColor: "text-teal-200"
+            },
+            {
+              title: "Employee Tickets",
+              value: stats.totalTickets,
+              icon: Briefcase,
+              bg: "from-rose-500 to-rose-600",
+              secondary: "Internal support",
+              iconColor: "text-rose-200"
+            },
+            {
+              title: "Open Tickets",
+              value: stats.openTickets,
+              icon: Clock,
+              bg: "from-amber-500 to-amber-600",
+              secondary: "Require attention",
+              iconColor: "text-amber-200"
+            }
+          ].map((stat, index) => (
+            <Card key={index} className={`shadow-lg border-0 bg-gradient-to-br ${stat.bg} text-white`}>
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">{stat.title}</CardTitle>
+                <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.iconColor}`} />
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl sm:text-3xl font-bold">{stat.value.toLocaleString()}</div>
+                <p className="text-xs mt-1 opacity-90">{stat.secondary}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-700">Labourers</CardTitle>
-            <Building className="h-5 w-5 text-orange-600" />
+        {/* Detailed Analytics - Updated for mobile */}
+        <Card className="shadow-lg border-0">
+          <CardHeader className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
+              Platform Analytics
+            </CardTitle>
+            <CardDescription className="text-slate-200 text-sm">
+              Detailed breakdown of platform usage and performance
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-900">{stats.labourers.toLocaleString()}</div>
-            <p className="text-xs text-orange-600 mt-2">
-              {stats.totalUsers > 0 ? Math.round((stats.labourers / stats.totalUsers) * 100) : 0}% of users
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Platform Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-indigo-50 to-indigo-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-indigo-700">Total Queries</CardTitle>
-            <Activity className="h-5 w-5 text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-900">{stats.totalQueries}</div>
-            <p className="text-xs text-indigo-600 mt-2">User support queries</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-teal-50 to-teal-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-teal-700">Resolved Queries</CardTitle>
-            <UserCheck className="h-5 w-5 text-teal-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-teal-900">{stats.resolvedQueries}</div>
-            <p className="text-xs text-teal-600 mt-2">{queryResolutionRate}% resolution rate</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-rose-50 to-rose-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-rose-700">Employee Tickets</CardTitle>
-            <Clock className="h-5 w-5 text-rose-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-rose-900">{stats.totalTickets}</div>
-            <p className="text-xs text-rose-600 mt-2">Internal support tickets</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-yellow-50 to-yellow-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-700">Open Tickets</CardTitle>
-            <Activity className="h-5 w-5 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-900">{stats.openTickets}</div>
-            <p className="text-xs text-yellow-600 mt-2">Require attention</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Analytics */}
-      <Card className="shadow-lg border-0">
-        <CardHeader className="bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Platform Analytics
-          </CardTitle>
-          <CardDescription className="text-gray-100">
-            Detailed breakdown of platform usage and performance metrics
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* User Distribution */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                User Distribution
-              </h4>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* User Distribution */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <span className="text-sm font-medium">Farmers</span>
-                  <div className="flex items-center gap-3">
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">{stats.farmers}</Badge>
-                    <span className="text-xs text-blue-600 font-medium">
-                      {stats.totalUsers > 0 ? Math.round((stats.farmers / stats.totalUsers) * 100) : 0}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-sm font-medium">Labourers</span>
-                  <div className="flex items-center gap-3">
-                    <Badge className="bg-green-100 text-green-800 border-green-200">{stats.labourers}</Badge>
-                    <span className="text-xs text-green-600 font-medium">
-                      {stats.totalUsers > 0 ? Math.round((stats.labourers / stats.totalUsers) * 100) : 0}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <span className="text-sm font-medium">Employees</span>
-                  <div className="flex items-center gap-3">
-                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">{stats.employees}</Badge>
-                    <span className="text-xs text-purple-600 font-medium">
-                      {stats.totalUsers > 0 ? Math.round((stats.employees / stats.totalUsers) * 100) : 0}%
-                    </span>
-                  </div>
+                <h4 className="font-bold text-lg flex items-center gap-2 text-slate-800">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  User Distribution
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { name: "Farmers", value: stats.farmers, icon: Sprout, color: "blue" },
+                    { name: "Labourers", value: stats.labourers, icon: Tractor, color: "emerald" },
+                    { name: "Employees", value: stats.employees, icon: Briefcase, color: "purple" }
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <item.icon className={`h-4 w-4 text-${item.color}-600`} />
+                        <span className="text-sm font-medium text-slate-700">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`bg-${item.color}-100 text-${item.color}-800 border-${item.color}-200 text-xs`}>
+                          {item.value.toLocaleString()}
+                        </Badge>
+                        <span className={`text-xs font-bold text-${item.color}-600`}>
+                          {Math.round((item.value / stats.totalUsers) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Support Metrics */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg flex items-center gap-2">
-                <Target className="h-5 w-5 text-green-600" />
-                Support Metrics
-              </h4>
+              {/* Support Metrics */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-sm font-medium">Query Resolution Rate</span>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={
-                        queryResolutionRate >= 80
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-red-100 text-red-800 border-red-200"
-                      }
-                    >
-                      {queryResolutionRate}%
-                    </Badge>
-                    {getPerformanceBadge(queryResolutionRate, 80)}
+                <h4 className="font-bold text-lg flex items-center gap-2 text-slate-800">
+                  <Target className="h-5 w-5 text-emerald-600" />
+                  Support Metrics
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">Resolution Rate</span>
+                    <div className="flex items-center gap-1">
+                      <Badge className={queryResolutionRate >= 80 ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-red-100 text-red-800 border-red-200"} variant="outline">
+                        {queryResolutionRate}%
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <span className="text-sm font-medium">Pending Queries</span>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={
-                        stats.totalQueries - stats.resolvedQueries > 10
-                          ? "bg-red-100 text-red-800 border-red-200"
-                          : "bg-green-100 text-green-800 border-green-200"
-                      }
-                    >
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">Pending Queries</span>
+                    <Badge className={stats.totalQueries - stats.resolvedQueries > 10 ? "bg-red-100 text-red-800 border-red-200" : "bg-emerald-100 text-emerald-800 border-emerald-200"} variant="outline">
                       {stats.totalQueries - stats.resolvedQueries}
                     </Badge>
                   </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                  <span className="text-sm font-medium">Open Tickets</span>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={
-                        stats.openTickets > 5
-                          ? "bg-red-100 text-red-800 border-red-200"
-                          : "bg-green-100 text-green-800 border-green-200"
-                      }
-                    >
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">Open Tickets</span>
+                    <Badge className={stats.openTickets > 5 ? "bg-red-100 text-red-800 border-red-200" : "bg-emerald-100 text-emerald-800 border-emerald-200"} variant="outline">
                       {stats.openTickets}
                     </Badge>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Activity Status */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg flex items-center gap-2">
-                <Zap className="h-5 w-5 text-purple-600" />
-                Activity Status
-              </h4>
+              {/* Activity Status */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <span className="text-sm font-medium">Active Users</span>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">{activeUserRate}%</Badge>
-                    {getPerformanceBadge(activeUserRate, 70)}
+                <h4 className="font-bold text-lg flex items-center gap-2 text-slate-800">
+                  <Zap className="h-5 w-5 text-purple-600" />
+                  Activity Status
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">Active Users</span>
+                    <div className="flex items-center gap-1">
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-200" variant="outline">
+                        {activeUserRate}%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">New Users</span>
+                    <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200" variant="outline">
+                      +{stats.newUsersThisMonth}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">Platform Health</span>
+                    <Badge className={queryResolutionRate >= 80 && stats.openTickets <= 5 ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-amber-100 text-amber-800 border-amber-200"} variant="outline">
+                      {queryResolutionRate >= 80 && stats.openTickets <= 5 ? "Excellent" : "Good"}
+                    </Badge>
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                  <span className="text-sm font-medium">New Users (Month)</span>
-                  <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">+{stats.newUsersThisMonth}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-teal-50 rounded-lg border border-teal-200">
-                  <span className="text-sm font-medium">Platform Health</span>
-                  <Badge
-                    className={
-                      queryResolutionRate >= 80 && stats.openTickets <= 5
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                    }
-                  >
-                    {queryResolutionRate >= 80 && stats.openTickets <= 5 ? "Excellent" : "Good"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Performance Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Growth Trends
-            </CardTitle>
-            <CardDescription className="text-emerald-100">Monthly growth and engagement metrics</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">User Growth Rate</span>
-                <Badge className="bg-green-100 text-green-800 border-green-200">+12% MoM</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Engagement Rate</span>
-                <Badge className="bg-blue-100 text-blue-800 border-blue-200">{activeUserRate}%</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Retention Rate</span>
-                <Badge className="bg-purple-100 text-purple-800 border-purple-200">87%</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Key Performance Indicators
-            </CardTitle>
-            <CardDescription className="text-amber-100">Critical metrics for platform success</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Average Response Time</span>
-                <Badge className="bg-green-100 text-green-800 border-green-200">&lt; 2 hours</Badge>
+        {/* Performance Summary - Updated for mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
+                Growth Trends
+              </CardTitle>
+              <CardDescription className="text-emerald-100 text-sm">
+                Monthly growth metrics and engagement
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {[
+                  { label: "User Growth Rate", value: "+12% MoM", color: "emerald" },
+                  { label: "Engagement Rate", value: `${activeUserRate}%`, color: "blue" },
+                  { label: "Retention Rate", value: "87%", color: "purple" },
+                  { label: "Daily Active Users", value: "8,450", color: "orange" }
+                ].map((item, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                    <Badge className={`bg-${item.color}-100 text-${item.color}-800 border-${item.color}-200`} variant="outline">
+                      {item.value}
+                    </Badge>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Customer Satisfaction</span>
-                <Badge className="bg-green-100 text-green-800 border-green-200">4.8/5</Badge>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
+                Key Indicators
+              </CardTitle>
+              <CardDescription className="text-blue-100 text-sm">
+                Critical metrics for platform success
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {[
+                  { label: "Avg Response Time", value: "< 2 hours", color: "emerald" },
+                  { label: "Farmer Satisfaction", value: "4.8/5", color: "emerald" },
+                  { label: "Platform Uptime", value: "99.9%", color: "emerald" },
+                  { label: "AI Accuracy Rate", value: "96.2%", color: "purple" }
+                ].map((item, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                    <Badge className={`bg-${item.color}-100 text-${item.color}-800 border-${item.color}-200`} variant="outline">
+                      {item.value}
+                    </Badge>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Platform Uptime</span>
-                <Badge className="bg-green-100 text-green-800 border-green-200">99.9%</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

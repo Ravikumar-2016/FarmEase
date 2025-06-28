@@ -20,6 +20,13 @@ import {
   Activity,
 } from "lucide-react"
 
+interface LabourApplication {
+  labourId: string
+  status: string
+  appliedAt: string
+  [key: string]: unknown
+}
+
 interface FarmWork {
   _id: string
   workId: string
@@ -31,7 +38,7 @@ interface FarmWork {
   area: string
   state: string
   status: string
-  labourApplications: any[]
+  labourApplications: LabourApplication[]
   createdAt: string
 }
 
@@ -58,7 +65,6 @@ export default function ActiveTasksPage() {
       setLoading(true)
       setError(null)
 
-      // Use the existing farm-works API with all=true parameter for employee dashboard
       const response = await fetch("/api/farm-works?all=true", {
         method: "GET",
         headers: {
@@ -73,15 +79,14 @@ export default function ActiveTasksPage() {
       const data = await response.json()
       console.log("Farm works data:", data)
 
-      // The API returns { works: [...] }
       if (data.works) {
         setFarmWorks(data.works)
       } else {
         setFarmWorks([])
       }
-    } catch (err: any) {
-      console.error("Error fetching farm works:", err)
-      setError(err.message || "Failed to fetch farm works")
+    } catch (error) {
+      console.error("Error fetching farm works:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch farm works")
     } finally {
       setLoading(false)
     }
@@ -154,7 +159,6 @@ export default function ActiveTasksPage() {
 
   const activeTasks = farmWorks.filter((work) => work.status === "active")
   const completedTasks = farmWorks.filter((work) => work.status === "completed")
-  const cancelledTasks = farmWorks.filter((work) => work.status === "cancelled")
 
   if (loading) {
     return (
@@ -207,40 +211,35 @@ export default function ActiveTasksPage() {
                 <p className="text-gray-600">Monitor ongoing farm work activities and applications</p>
               </div>
             </div>
-            <div className="w-32"></div> {/* Spacer for balance */}
+            <div className="w-32"></div>
           </div>
         </div>
       </div>
 
       {/* Header - Mobile */}
-<div className="md:hidden bg-white shadow-sm border-b">
-  <div className="px-4 py-4">
-    <div className="flex items-center justify-center space-x-4">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.push("/dashboard/employee")}
-        className="flex items-center space-x-1 p-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Back</span>
-      </Button>
-
-      {/* Icon + Title */}
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-purple-100 rounded-lg">
-          <Users className="h-5 w-5 text-purple-600" />
+      <div className="md:hidden bg-white shadow-sm border-b">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard/employee")}
+              className="flex items-center space-x-1 p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Users className="h-5 w-5 text-purple-600" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900">Active Tasks</h1>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Monitor farm work activities
+          </p>
         </div>
-        <h1 className="text-lg font-bold text-gray-900">Active Tasks</h1>
       </div>
-    </div>
-
-    {/* Subtitle centered below */}
-    <p className="text-sm text-gray-600 text-center mt-2">
-      Monitor farm work activities
-    </p>
-  </div>
-</div>
 
       {/* Stats Overview */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,6 +70,23 @@ export default function AnnouncementsPage() {
     title: "",
   })
 
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/announcements")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setAnnouncements(data.announcements || [])
+    } catch (error) {
+      console.error("Error fetching announcements:", error)
+      showSuccessMessage("Failed to fetch announcements. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     const userType = localStorage.getItem("userType")
     const username = localStorage.getItem("username")
@@ -82,24 +98,7 @@ export default function AnnouncementsPage() {
 
     setCurrentUser(username)
     fetchAnnouncements()
-  }, [router])
-
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch("/api/announcements")
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      const data = await response.json()
-      setAnnouncements(data.announcements || [])
-    } catch (err: any) {
-      console.error("Error fetching announcements:", err)
-      showSuccessMessage("Failed to fetch announcements. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [router, fetchAnnouncements])
 
   const showSuccessMessage = (message: string) => {
     setSuccessMessage({ show: true, message })
@@ -134,8 +133,8 @@ export default function AnnouncementsPage() {
       showSuccessMessage(
         editingAnnouncement ? "Announcement updated successfully!" : "Announcement created successfully!",
       )
-    } catch (err: any) {
-      console.error("Error saving announcement:", err)
+    } catch (error) {
+      console.error("Error saving announcement:", error)
       showSuccessMessage("Failed to save announcement. Please try again.")
     } finally {
       setSubmitting(false)
@@ -174,8 +173,8 @@ export default function AnnouncementsPage() {
 
       fetchAnnouncements()
       showSuccessMessage("Announcement deleted successfully!")
-    } catch (err: any) {
-      console.error("Error deleting announcement:", err)
+    } catch (error) {
+      console.error("Error deleting announcement:", error)
       showSuccessMessage("Failed to delete announcement. Please try again.")
     } finally {
       setDeleteConfirmation({
@@ -200,8 +199,8 @@ export default function AnnouncementsPage() {
 
       fetchAnnouncements()
       showSuccessMessage("Announcement status updated successfully!")
-    } catch (err: any) {
-      console.error("Error toggling announcement:", err)
+    } catch (error) {
+      console.error("Error toggling announcement:", error)
       showSuccessMessage("Failed to update announcement status. Please try again.")
     }
   }
@@ -282,34 +281,34 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* Header - Mobile */}
-<div className="md:hidden bg-white shadow-sm border-b">
-  <div className="px-4 py-4">
-    <div className="flex items-center justify-center space-x-4">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.push("/dashboard/employee")}
-        className="flex items-center space-x-1 p-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Back</span>
-      </Button>
+      <div className="md:hidden bg-white shadow-sm border-b">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-center space-x-4">
+            {/* Back Button */}
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard/employee")}
+              className="flex items-center space-x-1 p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
 
-      {/* Icon + Title */}
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <Megaphone className="h-5 w-5 text-blue-600" />
+            {/* Icon + Title */}
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Megaphone className="h-5 w-5 text-blue-600" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900">Announcements</h1>
+            </div>
+          </div>
+
+          {/* Subtitle centered below */}
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Create and manage announcements
+          </p>
         </div>
-        <h1 className="text-lg font-bold text-gray-900">Announcements</h1>
       </div>
-    </div>
-
-    {/* Subtitle centered below */}
-    <p className="text-sm text-gray-600 text-center mt-2">
-      Create and manage announcements
-    </p>
-  </div>
-</div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -451,77 +450,77 @@ export default function AnnouncementsPage() {
 
           {/* Announcements List */}
           <Card className="shadow-lg border-0">
-  <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg">
-    <CardTitle className="text-xl">All Announcements ({announcements.length})</CardTitle>
-    <CardDescription>Manage existing announcements</CardDescription>
-  </CardHeader>
-  <CardContent className="p-0">
-    <ScrollArea className="h-[600px]">
-      <div className="p-4 md:p-6 space-y-4">
-        {announcements.map((announcement) => (
-          <div
-            key={announcement._id}
-            className={`p-4 rounded-lg border-2 ${getAnnouncementColor(announcement.type)} transition-all hover:shadow-md`}
-          >
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-                  <div className="flex items-center gap-3">
-                    {getAnnouncementIcon(announcement.type)}
-                    <h4 className="font-semibold text-lg">{announcement.title}</h4>
-                  </div>
-                  <Badge variant={announcement.isActive ? "default" : "secondary"} className="text-xs w-fit">
-                    {announcement.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <p className="text-sm mb-3 leading-relaxed">{announcement.message}</p>
-                <p className="text-xs opacity-75">
-                  Created: {new Date(announcement.createdAt).toLocaleDateString()} by {announcement.createdBy}
-                </p>
-              </div>
-              <div className="flex items-center justify-end md:justify-start gap-2 md:ml-4">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() =>
-                    handleAnnouncementToggle(announcement.announcementId, !announcement.isActive)
-                  }
-                  className="h-8 w-8 p-0"
-                >
-                  {announcement.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleAnnouncementEdit(announcement)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => showDeleteConfirmation(announcement.announcementId, announcement.title)}
-                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg">
+              <CardTitle className="text-xl">All Announcements ({announcements.length})</CardTitle>
+              <CardDescription>Manage existing announcements</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[600px]">
+                <div className="p-4 md:p-6 space-y-4">
+                  {announcements.map((announcement) => (
+                    <div
+                      key={announcement._id}
+                      className={`p-4 rounded-lg border-2 ${getAnnouncementColor(announcement.type)} transition-all hover:shadow-md`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+                            <div className="flex items-center gap-3">
+                              {getAnnouncementIcon(announcement.type)}
+                              <h4 className="font-semibold text-lg">{announcement.title}</h4>
+                            </div>
+                            <Badge variant={announcement.isActive ? "default" : "secondary"} className="text-xs w-fit">
+                              {announcement.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm mb-3 leading-relaxed">{announcement.message}</p>
+                          <p className="text-xs opacity-75">
+                            Created: {new Date(announcement.createdAt).toLocaleDateString()} by {announcement.createdBy}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-end md:justify-start gap-2 md:ml-4">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              handleAnnouncementToggle(announcement.announcementId, !announcement.isActive)
+                            }
+                            className="h-8 w-8 p-0"
+                          >
+                            {announcement.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleAnnouncementEdit(announcement)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => showDeleteConfirmation(announcement.announcementId, announcement.title)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
 
-        {announcements.length === 0 && (
-          <div className="text-center py-12">
-            <Megaphone className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">No announcements yet</p>
-            <p className="text-sm text-gray-400">Create your first announcement to get started</p>
-          </div>
-        )}
-      </div>
-    </ScrollArea>
-  </CardContent>
-</Card>
+                  {announcements.length === 0 && (
+                    <div className="text-center py-12">
+                      <Megaphone className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">No announcements yet</p>
+                      <p className="text-sm text-gray-400">Create your first announcement to get started</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

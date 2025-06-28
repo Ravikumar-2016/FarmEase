@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { Megaphone, Users, MessageSquare, Lightbulb, BarChart3, Settings,CalendarDays, User, ChevronRight } from "lucide-react"
+import { Megaphone, Users, MessageSquare, Lightbulb, BarChart3, Settings, CalendarDays, User, ChevronRight } from "lucide-react"
 
 interface DashboardStats {
   totalAnnouncements: number
@@ -16,6 +16,21 @@ interface DashboardStats {
   inProgressQueries: number
   activeTasks: number
   totalTasks: number
+}
+
+interface Announcement {
+  isActive: boolean
+  [key: string]: unknown
+}
+
+interface Query {
+  status: "pending" | "in-progress" | "resolved" | string
+  [key: string]: unknown
+}
+
+interface FarmWork {
+  status?: "active" | "open" | string
+  [key: string]: unknown
 }
 
 export default function EmployeeDashboard() {
@@ -52,12 +67,12 @@ export default function EmployeeDashboard() {
       // Fetch announcements
       const announcementsRes = await fetch("/api/announcements")
       const announcementsData = await announcementsRes.json()
-      const announcements = announcementsData.announcements || []
+      const announcements: Announcement[] = announcementsData.announcements || []
 
       // Fetch queries
       const queriesRes = await fetch("/api/queries")
       const queriesData = await queriesRes.json()
-      const queries = queriesData.queries || []
+      const queries: Query[] = queriesData.queries || []
 
       // Fetch farm works with proper parameter
       const farmWorksRes = await fetch("/api/farm-works?all=true")
@@ -65,19 +80,19 @@ export default function EmployeeDashboard() {
         throw new Error(`HTTP error! status: ${farmWorksRes.status}`)
       }
       const farmWorksData = await farmWorksRes.json()
-      const farmWorks = farmWorksData.works || []
+      const farmWorks: FarmWork[] = farmWorksData.works || []
 
       // Count active tasks properly - check for both 'active' and 'open' status
       const activeTasks = farmWorks.filter(
-        (work: any) => work.status === "active" || work.status === "open" || !work.status,
+        (work) => work.status === "active" || work.status === "open" || !work.status,
       ).length
 
       setStats({
         totalAnnouncements: announcements.length,
-        activeAnnouncements: announcements.filter((a: any) => a.isActive).length,
+        activeAnnouncements: announcements.filter((a) => a.isActive).length,
         totalQueries: queries.length,
-        pendingQueries: queries.filter((q: any) => q.status === "pending").length,
-        inProgressQueries: queries.filter((q: any) => q.status === "in-progress").length,
+        pendingQueries: queries.filter((q) => q.status === "pending").length,
+        inProgressQueries: queries.filter((q) => q.status === "in-progress").length,
         activeTasks: activeTasks,
         totalTasks: farmWorks.length,
       })
@@ -153,38 +168,36 @@ export default function EmployeeDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Desktop Header */}
       <div className="hidden lg:block bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-6 lg:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-6 lg:py-8">
+            {/* Left - Date Widget */}
+            <div className="flex items-center space-x-3 bg-blue-50 px-4 py-3 rounded-lg shadow-sm">
+              <CalendarDays className="h-6 w-6 text-blue-600" />
+              <span className="text-base font-semibold text-blue-800">{today}</span>
+            </div>
 
-          {/* Left - Date Widget */}
-          <div className="flex items-center space-x-3 bg-blue-50 px-4 py-3 rounded-lg shadow-sm">
-            <CalendarDays className="h-6 w-6 text-blue-600" />
-            <span className="text-base font-semibold text-blue-800">{today}</span>
-          </div>
-
-          {/* Center - Dashboard Title */}
-          <div className="flex flex-col items-center">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-600 rounded-xl shadow-lg">
-                <Settings className="h-7 w-7 text-white" />
+            {/* Center - Dashboard Title */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-blue-600 rounded-xl shadow-lg">
+                  <Settings className="h-7 w-7 text-white" />
+                </div>
+                <h1 className="text-3xl font-extrabold text-gray-900">Employee Dashboard</h1>
               </div>
-              <h1 className="text-3xl font-extrabold text-gray-900">Employee Dashboard</h1>
+              <p className="text-sm text-gray-600 mt-1">Manage platform operations and user support</p>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Manage platform operations and user support</p>
-          </div>
 
-          {/* Right - User Info Widget */}
-          <div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-lg shadow-sm">
-            <User className="h-5 w-5 text-gray-500" />
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Welcome back,</p>
-              <p className="font-bold text-gray-900">{currentUser}</p>
+            {/* Right - User Info Widget */}
+            <div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-lg shadow-sm">
+              <User className="h-5 w-5 text-gray-500" />
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Welcome back,</p>
+                <p className="font-bold text-gray-900">{currentUser}</p>
+              </div>
             </div>
           </div>
-
         </div>
       </div>
-    </div>
 
       {/* Mobile Header */}
       <div className="lg:hidden bg-white shadow-lg border-b border-gray-200">

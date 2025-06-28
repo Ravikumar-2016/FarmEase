@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase()
 
-    const query: any = {}
+    const query: Record<string, unknown> = {}
     if (activeOnly) {
       query.isActive = true
     }
@@ -86,7 +86,7 @@ export async function PUT(request: NextRequest) {
 
     const { db } = await connectToDatabase()
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     }
 

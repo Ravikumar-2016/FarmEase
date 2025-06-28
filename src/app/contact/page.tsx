@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect} from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 export default function ContactPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const userType = localStorage.getItem("userType")

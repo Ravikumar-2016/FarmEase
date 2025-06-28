@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -228,41 +227,54 @@ export default function FuturePlansPage() {
     }
     return <Badge className={statusColors[status] || "bg-gray-100 text-gray-800 border-gray-300"}>{status}</Badge>
   }
+interface Feature {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  timeline: string;
+  priority: string;
+  status: string;
+  color: string;
+}
 
-  const FeatureCard = ({ feature, index }: { feature: any; index: number }) => {
-    const IconComponent = feature.icon
-    return (
-      <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white group">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div
-              className={`p-3 bg-gradient-to-r ${feature.color} rounded-xl shadow-lg group-hover:shadow-xl transition-shadow`}
-            >
-              <IconComponent className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex flex-col gap-2">
-              {getPriorityBadge(feature.priority)}
-              {getStatusBadge(feature.status)}
+interface FeatureCardProps {
+  feature: Feature;
+}
+
+const FeatureCard = ({ feature }: FeatureCardProps) => {
+  const IconComponent = feature.icon;
+  return (
+    <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white group">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div
+            className={`p-3 bg-gradient-to-r ${feature.color} rounded-xl shadow-lg group-hover:shadow-xl transition-shadow`}
+          >
+            <IconComponent className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex flex-col gap-2">
+            {getPriorityBadge(feature.priority)}
+            {getStatusBadge(feature.status)}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+            {feature.title}
+          </h3>
+          <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="h-4 w-4" />
+              <span>{feature.timeline}</span>
             </div>
           </div>
-
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-              {feature.title}
-            </h3>
-            <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
-
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Calendar className="h-4 w-4" />
-                <span>{feature.timeline}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
   const tabOptions = [
     { value: "ai", label: "AI & Technology", icon: Bot, color: "blue" },
@@ -348,33 +360,30 @@ export default function FuturePlansPage() {
 
       {/* Header - Mobile */}
       <div className="md:hidden bg-white shadow-sm border-b">
-  <div className="px-4 py-4">
-    <div className="flex items-center justify-center space-x-4">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.push("/dashboard/employee")}
-        className="flex items-center space-x-1 p-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Back</span>
-      </Button>
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard/employee")}
+              className="flex items-center space-x-1 p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
 
-      {/* Icon + Title */}
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-amber-100 rounded-lg">
-          <Lightbulb className="h-5 w-5 text-amber-600" />
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <Lightbulb className="h-5 w-5 text-amber-600" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900">Future Plans</h1>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Development roadmap & innovations
+          </p>
         </div>
-        <h1 className="text-lg font-bold text-gray-900">Future Plans</h1>
       </div>
-    </div>
-
-    {/* Subtitle below in center */}
-    <p className="text-sm text-gray-600 text-center mt-2">
-      Development roadmap & innovations
-    </p>
-  </div>
-</div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -412,19 +421,26 @@ export default function FuturePlansPage() {
         {/* Desktop Tabs */}
         <div className="hidden md:block">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-lg p-1 gap-1">
               {tabOptions.map((tab) => {
-                const IconComponent = tab.icon
+                const IconComponent = tab.icon;
+                const activeColorClass = {
+                  'blue': 'data-[state=active]:bg-blue-500 data-[state=active]:text-white',
+                  'green': 'data-[state=active]:bg-green-500 data-[state=active]:text-white',
+                  'purple': 'data-[state=active]:bg-purple-500 data-[state=active]:text-white',
+                  'orange': 'data-[state=active]:bg-orange-500 data-[state=active]:text-white',
+                }[tab.color] || 'data-[state=active]:bg-blue-500 data-[state=active]:text-white';
+
                 return (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className={`flex items-center gap-2 data-[state=active]:bg-${tab.color}-500 data-[state=active]:text-white`}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-md transition-colors ${activeColorClass}`}
                   >
                     <IconComponent className="h-4 w-4" />
                     {tab.label}
                   </TabsTrigger>
-                )
+                );
               })}
             </TabsList>
 
@@ -442,7 +458,7 @@ export default function FuturePlansPage() {
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {getCurrentFeatures().map((feature, index) => (
-                      <FeatureCard key={index} feature={feature} index={index} />
+                      <FeatureCard key={index} feature={feature} />
                     ))}
                   </div>
                 </CardContent>
@@ -496,7 +512,7 @@ export default function FuturePlansPage() {
             <CardContent className="p-4">
               <div className="grid grid-cols-1 gap-4">
                 {getCurrentFeatures().map((feature, index) => (
-                  <FeatureCard key={index} feature={feature} index={index} />
+                  <FeatureCard key={index} feature={feature}/>
                 ))}
               </div>
             </CardContent>

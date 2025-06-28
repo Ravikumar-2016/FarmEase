@@ -53,6 +53,15 @@ interface UserInfo {
   state: string
 }
 
+type Toast = {
+  id: string;
+  message?: string;
+  title?: string;
+  type?: string;
+  variant?: string;
+  // add other properties you might need
+};
+
 export default function WorkOpportunitiesPage() {
   const router = useRouter()
   const { toasts, removeToast, success, error } = useToast()
@@ -247,14 +256,27 @@ export default function WorkOpportunitiesPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 relative">
       {/* Toast Container */}
       <ToastContainer
-        toasts={toasts.map((toast: any) => ({
-          id: toast.id,
-          message: toast.message || toast.title || "",
-          type: toast.type || toast.variant || "info",
-          // add other properties if needed
-        }))}
-        onRemove={removeToast}
-      />
+              toasts={toasts.map((toast: Toast) => ({
+                id: toast.id,
+                message: toast.message || toast.title || "",
+                type:
+                  toast.type === "success" ||
+                  toast.type === "error" ||
+                  toast.type === "warning" ||
+                  toast.type === "info" ||
+                  toast.type === "destructive"
+                    ? toast.type
+                    : toast.variant === "success" ||
+                      toast.variant === "error" ||
+                      toast.variant === "warning" ||
+                      toast.variant === "info" ||
+                      toast.variant === "destructive"
+                    ? toast.variant
+                    : "info",
+                // add other properties if needed
+              }))}
+              onRemove={removeToast}
+            />
 
       {/* Header */}
       <div className="relative z-10 bg-white border-b border-gray-200 shadow-sm">

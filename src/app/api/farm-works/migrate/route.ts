@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 
 // Migration script to add workId to existing farmWorks documents
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const client = await clientPromise
     const db = client.db("FarmEase")

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Mail, Phone, MapPin, Clock,ArrowLeft,PhoneCall, Send, Loader2, CheckCircle, MessageSquare, FileText } from "lucide-react"
+import { Mail, Phone, MapPin, Clock, ArrowLeft, PhoneCall, Send, Loader2, CheckCircle, MessageSquare, FileText } from "lucide-react"
 
 interface Query {
   _id: string
@@ -40,7 +40,6 @@ interface UserData {
 
 export default function UserContactPage() {
   const router = useRouter()
-  const [userType, setUserType] = useState<string>("")
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -64,11 +63,10 @@ export default function UserContactPage() {
       return
     }
 
-    setUserType(storedUserType)
-    fetchUserData(username, storedUserType)
+    fetchUserData(username)
   }, [router])
 
-  const fetchUserData = async (username: string, userType: string) => {
+  const fetchUserData = async (username: string) => {
     try {
       setLoading(true)
 
@@ -121,7 +119,7 @@ export default function UserContactPage() {
         setSubmitMessage("Your query has been submitted successfully! We'll respond within 24 hours.")
         setQueryForm({ subject: "", message: "", priority: "normal" })
         // Refresh queries
-        fetchUserData(userData.username, userData.userType)
+        fetchUserData(userData.username)
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to submit query")
@@ -170,70 +168,66 @@ export default function UserContactPage() {
   }
 
   return (
-
     <div className="min-h-screen bg-gray-50">
+      {/* ✅ Desktop Header */}
+      <div className="hidden md:block bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            {/* Back Button */}
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => router.push(`/dashboard/${userData?.userType || ''}`)}
+                className="flex items-center space-x-2 hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+            </div>
 
-     {/* ✅ Desktop Header */}
-<div className="hidden md:block bg-white shadow-sm border-b border-gray-200">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div className="flex items-center justify-between">
-      
-      {/* Back Button */}
-      <div className="flex items-center space-x-4">
-        <Button
-  variant="ghost"
-  onClick={() => router.push(`/dashboard/${userType}`)}
-  className="flex items-center space-x-2 hover:bg-gray-100"
->
-  <ArrowLeft className="h-4 w-4" />
-  <span>Back to Dashboard</span>
-</Button>
-
+            {/* Center Title with Icon */}
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <PhoneCall className="h-6 w-6 text-rose-600" />
+              </div>
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
+                <p className="text-gray-600">Reach out for support or queries</p>
+              </div>
+            </div>
+            
+            {/* Spacer for alignment */}
+            <div className="w-32"></div>
+          </div>
+        </div>
       </div>
 
-      {/* Center Title with Icon */}
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-           <PhoneCall className="h-6 w-6 text-rose-600" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
-            <p className="text-gray-600">Reach out for support or queries</p>
+      {/* ✅ Mobile Header */}
+      <div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-center space-x-3">
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/dashboard/${userData?.userType || ''}`)}
+              className="flex items-center space-x-1 p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
+
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-rose-100 rounded-lg">
+                <PhoneCall className="h-5 w-5 text-rose-600" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900">Contact Us</h1>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-600 mt-2">
+            Reach out for support or queries
+          </p>
         </div>
       </div>
-      
-      {/* Spacer for alignment */}
-      <div className="w-32"></div>
-    </div>
-  </div>
-</div>
-
-{/* ✅ Mobile Header */}
-<div className="md:hidden bg-white shadow-sm border-b border-gray-200">
-  <div className="px-4 py-4">
-    <div className="flex items-center justify-center space-x-3">
-      <Button
-        variant="ghost"
-         onClick={() => router.push(`/dashboard/${userType}`)}
-        className="flex items-center space-x-1 p-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Back</span>
-      </Button>
-
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-rose-100 rounded-lg">
-          <PhoneCall className="h-5 w-5 text-rose-600" />
-        </div>
-        <h1 className="text-lg font-bold text-gray-900">Contact Us</h1>
-      </div>
-    </div>
-
-    <p className="text-center text-sm text-gray-600 mt-2">
-      Reach out for support or queries
-    </p>
-  </div>
-</div>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-50 to-blue-50 py-12">
@@ -266,7 +260,7 @@ export default function UserContactPage() {
                     Submit New Query
                   </CardTitle>
                   <CardDescription>
-                    Describe your issue or question and we'll get back to you within 24 hours
+                    Describe your issue or question and we&apos;ll get back to you within 24 hours
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

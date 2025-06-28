@@ -122,10 +122,10 @@ async function handleVerifyOTP(db: Db, { email, otp }: VerifyOTPInput) {
 }
 
 async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
-  let {
-    email,
-    username,
-    password,
+  const {
+    email: originalEmail,
+    username: originalUsername,
+    password: originalPassword,
     userType,
     fullName = "",
     mobile = "",
@@ -134,14 +134,15 @@ async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
     zipcode = "",
   } = accountData
 
-  // Trim and format fields
-  email = email.trim()
-  username = username.trim()
-  fullName = toTitleCase(fullName.trim())
-  mobile = mobile.trim()
-  area = toTitleCase(area.trim())
-  state = toTitleCase(state.trim())
-  zipcode = zipcode.trim()
+  // Create trimmed and formatted versions
+  const email = originalEmail.trim()
+  const username = originalUsername.trim()
+  const password = originalPassword
+  const fullNameFormatted = toTitleCase(fullName.trim())
+  const mobileFormatted = mobile.trim()
+  const areaFormatted = toTitleCase(area.trim())
+  const stateFormatted = toTitleCase(state.trim())
+  const zipcodeFormatted = zipcode.trim()
 
   if (!email || !username || !password || !userType) {
     return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
@@ -151,7 +152,7 @@ async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
     return NextResponse.json({ message: "Password must be at least 6 characters" }, { status: 400 })
   }
 
-  if (mobile && !/^\d{10}$/.test(mobile)) {
+  if (mobileFormatted && !/^\d{10}$/.test(mobileFormatted)) {
     return NextResponse.json({ message: "Mobile number must be 10 digits" }, { status: 400 })
   }
 
@@ -177,11 +178,11 @@ async function handleCreateAccount(db: Db, accountData: CreateAccountInput) {
     email,
     password: hashedPassword,
     userType,
-    fullName,
-    mobile,
-    area,
-    state,
-    zipcode,
+    fullName: fullNameFormatted,
+    mobile: mobileFormatted,
+    area: areaFormatted,
+    state: stateFormatted,
+    zipcode: zipcodeFormatted,
     emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),
