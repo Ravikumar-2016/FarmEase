@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
+import { useRouter } from "next/navigation"
 import {
   Plus,
   Edit,
@@ -25,8 +26,6 @@ import {
   MapPin,
   AlertCircle,
   CheckCircle,
-  // Shield,
-  // Info,
 } from "lucide-react"
 
 interface Partner {
@@ -56,6 +55,7 @@ export default function ManagePartners() {
   const [currentUser, setCurrentUser] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
 
   // Form state
   const [formData, setFormData] = useState({
@@ -135,9 +135,17 @@ export default function ManagePartners() {
     }
   }
 
-  useEffect(() => {
+   useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
     fetchPartners()
-  }, [])
+  }, [router])
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -417,11 +425,29 @@ export default function ManagePartners() {
           </div>
         )}
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Partner Management</h1>
-          <p className="text-lg text-slate-600">Manage FarmEase platform partners and collaborations</p>
+        {/* ✅ Desktop Header - Manage Partners */}
+<div className="hidden md:block text-center mb-8">
+  <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Partner Management</h1>
+  <p className="text-lg text-slate-600">Manage FarmEase partners and collaborations</p>
+</div>
+
+{/* ✅ Mobile Header - Manage Partners */}
+<div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+  <div className="px-4 py-4">
+    <div className="flex items-center justify-center space-x-3">
+      <div className="flex items-center space-x-2">
+        <div className="p-2 bg-purple-100 rounded-lg">
+          <Handshake className="h-5 w-5 text-purple-600" />
         </div>
+        <h1 className="text-lg font-bold text-gray-900">Manage Partners</h1>
+      </div>
+    </div>
+    <p className="text-center text-sm text-gray-600 mt-2">
+      Handle partnerships and platform collaboration
+    </p>
+  </div>
+</div>
+
 
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">

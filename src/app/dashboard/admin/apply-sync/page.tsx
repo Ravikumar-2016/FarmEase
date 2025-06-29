@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation"
 import {
   Users,
   Building,
@@ -24,6 +25,7 @@ import {
   XCircle,
   AlertCircle,
   Trash2,
+  ClipboardList,
 } from "lucide-react"
 import { useToast } from "@/app/hooks/use-toast"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
@@ -67,6 +69,7 @@ interface DeleteConfirmation {
 }
 
 export default function ApplySync() {
+  const router = useRouter()
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([])
   const [partnershipRequests, setPartnershipRequests] = useState<PartnershipRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,6 +81,18 @@ export default function ApplySync() {
   })
   const [isDeleting, setIsDeleting] = useState(false)
   const { toast } = useToast()
+
+  useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
+    fetchData()
+  }, [router])
 
   const fetchData = async () => {
     try {
@@ -158,10 +173,6 @@ export default function ApplySync() {
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -222,16 +233,36 @@ export default function ApplySync() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="space-y-6 p-4 md:p-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Desktop Header - visible only on md+ screens */}
+        <div className="hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border-b border-gray-200 px-6 py-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Application Sync</h1>
             <p className="text-gray-600 mt-1">Manage job applications and partnership requests</p>
           </div>
-          <Button onClick={fetchData} disabled={loading} className="w-fit">
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Refresh Data
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={fetchData} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Refresh Data
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Header - visible only on small screens */}
+        <div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+          <div className="px-4 py-4">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <ClipboardList className="h-5 w-5 text-indigo-600" />
+                </div>
+                <h1 className="text-lg font-bold text-gray-900">Apply Sync</h1>
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-gray-600 mt-2">
+              Review labour job applications and partner requests
+            </p>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -279,7 +310,7 @@ export default function ApplySync() {
                 <Users className="h-5 w-5" />
                 Job Applications ({jobApplications.length})
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-sky-50">
                 Career applications submitted through the website
               </CardDescription>
             </CardHeader>

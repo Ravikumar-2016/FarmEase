@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
 import {
   MessageSquare,
   TrendingUp,
@@ -17,6 +19,9 @@ import {
 } from "lucide-react"
 
 export default function AdminOverviewPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+
   // Demo data: Replace with real data as needed
   const recentActivities = [
     {
@@ -69,6 +74,23 @@ export default function AdminOverviewPage() {
     { name: "Authentication", status: "operational", uptime: "99.9%", icon: "🔒" },
   ]
 
+  useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
+    // Simulate data loading
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [router])
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "operational":
@@ -97,13 +119,24 @@ export default function AdminOverviewPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="h-8 w-8 animate-pulse mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading Overview...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">FarmEase Admin Dashboard</h1>
-          <p className="text-lg text-slate-600">Comprehensive platform management and insights</p>
+        {/* Desktop Header - Admin Dashboard */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">FarmEase Admin Overview</h1>
+          <p className="text-sm sm:text-base text-slate-600">Comprehensive platform management and actionable insights</p>
         </div>
 
         {/* Welcome Section */}
@@ -189,7 +222,7 @@ export default function AdminOverviewPage() {
             </CardContent>
           </Card>
 
-          {/* System Status - Updated for better mobile view */}
+          {/* System Status */}
           <Card className="shadow-xl border-0 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
               <CardTitle className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useRouter } from "next/navigation"
 import {
   MessageSquare,
   User,
@@ -52,6 +53,7 @@ interface DeleteConfirmation {
 }
 
 export default function TicketManagement() {
+  const router = useRouter()
   const mobileFormRef = useRef<HTMLDivElement>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
@@ -68,8 +70,16 @@ export default function TicketManagement() {
   })
 
   useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
     fetchTickets()
-  }, [])
+  }, [router])
 
   const fetchTickets = async () => {
     // Fetch only employee tickets for admin
@@ -324,6 +334,30 @@ export default function TicketManagement() {
           <span>{successMessage.message}</span>
         </div>
       )}
+
+      {/* ✅ Desktop Header - Ticket Management */}
+<div className="hidden md:block text-center mb-8">
+  <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Ticket Management</h1>
+  <p className="text-lg text-slate-600">View and resolve support tickets submitted by employees</p>
+</div>
+
+{/* ✅ Mobile Header - Ticket Management */}
+<div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+  <div className="px-4 py-4">
+    <div className="flex items-center justify-center space-x-3">
+      <div className="flex items-center space-x-2">
+        <div className="p-2 bg-rose-100 rounded-lg">
+          <MessageSquare className="h-5 w-5 text-rose-600" />
+        </div>
+        <h1 className="text-lg font-bold text-gray-900">Ticket Management</h1>
+      </div>
+    </div>
+
+    <p className="text-center text-sm text-gray-600 mt-2">
+      View and resolve tickets submitted by employees
+    </p>
+  </div>
+</div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">

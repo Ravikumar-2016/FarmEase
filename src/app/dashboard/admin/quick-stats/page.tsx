@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
 import {
   Users,
   UserCheck,
@@ -31,6 +33,9 @@ interface UserStats {
 }
 
 export default function AdminQuickStatsPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+
   // Demo data - replace with real API data
   const stats: UserStats = {
     totalUsers: 15420,
@@ -45,20 +50,49 @@ export default function AdminQuickStatsPage() {
     openTickets: 23,
   }
 
+  useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
+    // Simulate data loading
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [router])
+
   const queryResolutionRate =
     stats.totalQueries > 0 ? Math.round((stats.resolvedQueries / stats.totalQueries) * 100) : 0
   const activeUserRate = stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <BarChart3 className="h-8 w-8 animate-pulse mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading statistics...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
+
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">FarmEase Platform Statistics</h1>
           <p className="text-sm sm:text-base text-slate-600">Real-time insights and performance metrics</p>
         </div>
 
-        {/* Primary Stats - Updated for mobile */}
+        {/* Primary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -107,7 +141,7 @@ export default function AdminQuickStatsPage() {
           ))}
         </div>
 
-        {/* Platform Activity - Updated for mobile */}
+        {/* Platform Activity */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -156,7 +190,7 @@ export default function AdminQuickStatsPage() {
           ))}
         </div>
 
-        {/* Detailed Analytics - Updated for mobile */}
+        {/* Detailed Analytics */}
         <Card className="shadow-lg border-0">
           <CardHeader className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4">
             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -262,7 +296,7 @@ export default function AdminQuickStatsPage() {
           </CardContent>
         </Card>
 
-        {/* Performance Summary - Updated for mobile */}
+        {/* Performance Summary */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4">

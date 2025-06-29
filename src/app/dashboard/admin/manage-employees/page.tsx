@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ConfirmationModal } from "@/components/ui/confirmation-modal"
+import { useRouter } from "next/navigation"
 import {
   UserPlus,
   Edit,
@@ -46,6 +47,7 @@ interface Employee {
 }
 
 export default function ManageEmployees() {
+  const router = useRouter()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -111,9 +113,17 @@ export default function ManageEmployees() {
     }
   }
 
-  useEffect(() => {
+ useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
     fetchEmployees()
-  }, [])
+  }, [router])
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,6 +380,7 @@ export default function ManageEmployees() {
 
   return (
     <div className="space-y-6">
+
       {/* Success/Error Message */}
       {successMessage.show && (
         <div
@@ -385,6 +396,29 @@ export default function ManageEmployees() {
           <span>{successMessage.message}</span>
         </div>
       )}
+
+     {/* ✅ Desktop Header - Manage Employees */}
+<div className="hidden md:block text-center mb-8">
+  <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Employee Management</h1>
+  <p className="text-lg text-slate-600">Manage employees and their platform roles</p>
+</div>
+
+{/* ✅ Mobile Header - Manage Employees */}
+<div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+  <div className="px-4 py-4">
+    <div className="flex items-center justify-center space-x-3">
+      <div className="flex items-center space-x-2">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Users className="h-5 w-5 text-blue-600" />
+        </div>
+        <h1 className="text-lg font-bold text-gray-900">Manage Employees</h1>
+      </div>
+    </div>
+    <p className="text-center text-sm text-gray-600 mt-2">
+      Assign roles and monitor employee activity
+    </p>
+  </div>
+</div>
 
       {/* Desktop Layout */}
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">

@@ -304,9 +304,6 @@ export default function AdminDashboard() {
             </Tabs>
           </CardContent>
         </Card>
-
-        
-    
       </div>
     </div>
   )
