@@ -1,9 +1,8 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Header } from "./header/page"
-import {Footer} from "./footer/page"
+import { Footer } from "./footer/page"
 import { Analytics } from "@vercel/analytics/next"
 import { NetworkBanner } from "@/components/network-banner"
 
