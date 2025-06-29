@@ -116,47 +116,84 @@ export default function LabourDashboard() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
 
   const fetchLabourWorks = useCallback(
-    async (userInfo: UserData) => {
-      try {
-        const response = await fetch(
-          `/api/farm-works?area=${encodeURIComponent(userInfo.area)}&state=${encodeURIComponent(userInfo.state)}`,
-        )
-        if (!response.ok) throw new Error("Failed to fetch works")
+  async (userInfo: UserData) => {
+    try {
+      // Step 1: First update any expired works to "completed" status
+      const updateResponse = await fetch('/api/farm-works/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-        const data = await response.json()
-        const allWorks = data.works || []
-
-        const userAppliedWorks = allWorks.filter((work: FarmWork) =>
-          work.labourApplications.some((app) => app.labourUsername === userInfo.username),
-        )
-
-        const active = userAppliedWorks.filter((work: FarmWork) => work.status === "active")
-        const past = userAppliedWorks.filter(
-          (work: FarmWork) => work.status === "completed" || work.status === "cancelled",
-        )
-
-        setActiveApplications(active)
-        setPastWorks(past)
-
-        const availableJobs = allWorks.filter(
-          (work: FarmWork) =>
-            work.status === "active" &&
-            !work.labourApplications.some((app) => app.labourUsername === userInfo.username) &&
-            work.labourApplications.length < work.laboursRequired,
-        ).length
-
-        setStats({
-          activeApplications: active.length,
-          completedWorks: past.length,
-          availableJobs,
-        })
-      } catch (err) {
-        console.error("Error fetching labour works:", err)
-        error("Failed to load work history")
+      if (!updateResponse.ok) {
+        console.error('Failed to update work statuses');
+        // Continue anyway - don't fail the whole operation
       }
-    },
-    [error],
-  )
+
+      // Step 2: Now fetch the labour's work data
+      const [areaResponse, appliedResponse] = await Promise.all([
+        fetch(`/api/farm-works?area=${encodeURIComponent(userInfo.area)}&state=${encodeURIComponent(userInfo.state)}`),
+        fetch(`/api/farm-works/labour-applied?labourUsername=${encodeURIComponent(userInfo.username)}`)
+      ]);
+
+      if (!areaResponse.ok) throw new Error("Failed to fetch area works");
+      
+      const areaWorks = (await areaResponse.json()).works || [];
+      const appliedWorks = appliedResponse.ok ? (await appliedResponse.json()).works || [] : [];
+
+      // Combine and deduplicate works
+      const allWorks = [...areaWorks, ...appliedWorks].reduce((unique: FarmWork[], work: FarmWork) => {
+        if (!unique.some(w => w._id === work._id)) {
+          unique.push(work);
+        }
+        return unique;
+      }, []);
+
+      // Filter works where this labour has actually applied
+      const userAppliedWorks = allWorks.filter((work: FarmWork) =>
+        work.labourApplications.some(app => app.labourUsername === userInfo.username)
+      );
+
+      // Get current date without time
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Active applications: works with status "active" and future date
+      const active = userAppliedWorks.filter((work: FarmWork) => {
+        const workDate = new Date(work.workDate);
+        return work.status === "active" && workDate >= today;
+      });
+
+      // Past works: completed or cancelled works
+      const past = userAppliedWorks.filter((work: FarmWork) => 
+        work.status === "completed" || work.status === "cancelled"
+      );
+
+      setActiveApplications(active);
+      setPastWorks(past);
+
+      // Available jobs: active works in area not applied to with capacity and future date
+      const availableJobs = areaWorks.filter(
+        (work: FarmWork) =>
+          work.status === "active" &&
+          new Date(work.workDate) >= today &&
+          !work.labourApplications.some(app => app.labourUsername === userInfo.username) &&
+          work.labourApplications.length < work.laboursRequired
+      ).length;
+
+      setStats({
+        activeApplications: active.length,
+        completedWorks: past.length,
+        availableJobs,
+      });
+    } catch (err) {
+      console.error("Error fetching labour works:", err);
+      error("Failed to load work history");
+    }
+  },
+  [error]
+);
 
   const fetchUserData = useCallback(
     async (username: string) => {
@@ -765,97 +802,109 @@ export default function LabourDashboard() {
           </Card>
 
           {/* My Past Works */}
-          <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg border-b border-gray-100 pb-6">
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <div className="p-3 bg-gray-100 rounded-xl">
-                  <CheckCircle className="h-6 w-6 text-gray-600" />
-                </div>
-                <div>
-                  <span className="text-gray-900">Work History</span>
-                  <CardDescription className="mt-2 text-base">
-                    View your completed and cancelled work history
-                  </CardDescription>
-                </div>
-                <Badge className="bg-gray-100 text-gray-800 text-lg px-3 py-1">{stats.completedWorks}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              {pastWorks.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                    <CheckCircle className="h-10 w-10 text-gray-400" />
+          {/* My Past Works Section */}
+<Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+  <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg border-b border-gray-100 pb-6">
+    <CardTitle className="flex items-center gap-3 text-2xl">
+      <div className="p-3 bg-gray-100 rounded-xl">
+        <CheckCircle className="h-6 w-6 text-gray-600" />
+      </div>
+      <div>
+        <span className="text-gray-900">Work History</span>
+        <CardDescription className="mt-2 text-base">
+          View your completed and cancelled work history
+        </CardDescription>
+      </div>
+      <Badge className="bg-gray-100 text-gray-800 text-lg px-3 py-1">
+        {pastWorks.length}
+      </Badge>
+    </CardTitle>
+  </CardHeader>
+  <CardContent className="p-8">
+    {pastWorks.length === 0 ? (
+      <div className="text-center py-12">
+        <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+          <CheckCircle className="h-10 w-10 text-gray-400" />
+        </div>
+        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Work History</h3>
+        <p className="text-gray-500">Your completed and cancelled works will appear here</p>
+      </div>
+    ) : (
+      <div className="space-y-6">
+        {pastWorks.map((work) => {
+          // Find this labour's application details
+          const application = work.labourApplications.find(
+            app => app.labourUsername === user?.username
+          );
+
+          return (
+            <Card
+              key={work._id}
+              className="border-2 border-gray-200 hover:shadow-lg transition-all duration-300 bg-white"
+            >
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="font-bold text-xl text-gray-900">
+                      {work.cropName} - {work.workType}
+                    </h3>
+                    <Badge className={`${getWorkTypeColor(work.workType)} text-sm px-3 py-1`}>
+                      {work.workType}
+                    </Badge>
+                    <Badge className={`${getStatusColor(work.status)} text-sm px-3 py-1`}>
+                      {work.status}
+                    </Badge>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Work History</h3>
-                  <p className="text-gray-500">Your completed and cancelled works will appear here</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium">{formatDate(work.workDate)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">
+                        {work.labourApplications.length}/{work.laboursRequired} workers
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-purple-600" />
+                      <span className="font-medium">
+                        {work.area}, {work.state}
+                      </span>
+                    </div>
+                  </div>
+
+                  {work.additionalDetails && (
+                    <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+                      <p className="text-sm text-gray-700">
+                        <strong className="text-gray-900">Work Details:</strong> {work.additionalDetails}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                    <div className="flex flex-wrap gap-4">
+                      <span>
+                        <strong>Farmer:</strong> {work.farmerUsername}
+                      </span>
+                      <span>
+                        <strong>Status:</strong> {work.status === "completed" ? "Completed" : "Cancelled"}
+                      </span>
+                      <span>
+                        <strong>Applied:</strong> {application ? formatDateTime(application.appliedAt) : "N/A"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {pastWorks.map((work) => (
-                    <Card
-                      key={work._id}
-                      className="border-2 border-gray-200 hover:shadow-lg transition-all duration-300 bg-white"
-                    >
-                      <CardContent className="p-6">
-                        <div className="space-y-4">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="font-bold text-xl text-gray-900">
-                              {work.cropName} - {work.workType}
-                            </h3>
-                            <Badge className={`${getWorkTypeColor(work.workType)} text-sm px-3 py-1`}>
-                              {work.workType}
-                            </Badge>
-                            <Badge className={`${getStatusColor(work.status)} text-sm px-3 py-1`}>{work.status}</Badge>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-600">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-5 w-5 text-blue-600" />
-                              <span className="font-medium">{formatDate(work.workDate)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Users className="h-5 w-5 text-green-600" />
-                              <span className="font-medium">
-                                {work.labourApplications.length}/{work.laboursRequired} workers
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-5 w-5 text-purple-600" />
-                              <span className="font-medium">
-                                {work.area}, {work.state}
-                              </span>
-                            </div>
-                          </div>
-
-                          {work.additionalDetails && (
-                            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
-                              <p className="text-sm text-gray-700">
-                                <strong className="text-gray-900">Work Details:</strong> {work.additionalDetails}
-                              </p>
-                            </div>
-                          )}
-
-                          <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                            <div className="flex flex-wrap gap-4">
-                              <span>
-                                <strong>Farmer:</strong> {work.farmerUsername}
-                              </span>
-                              <span>
-                                <strong>Status:</strong> {work.status === "completed" ? "Completed" : "Cancelled"}
-                              </span>
-                              <span>
-                                <strong>Date:</strong> {formatDate(work.workDate)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    )}
+  </CardContent>
+</Card>
         </div>
       </main>
     </div>

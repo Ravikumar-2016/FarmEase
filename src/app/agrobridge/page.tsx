@@ -207,17 +207,58 @@ export default function AgroBridgePage() {
     [fetchFarmWorks],
   )
 
-  useEffect(() => {
-    const userType = localStorage.getItem("userType")
-    const username = localStorage.getItem("username")
+  // Add this state near your other state declarations
+const [statusUpdateCompleted, setStatusUpdateCompleted] = useState(false);
 
-    if (!userType || !username || userType !== "farmer") {
-      router.push("/login")
-      return
+// Modify the updateExpiredWorks function
+const updateExpiredWorks = useCallback(async () => {
+  if (statusUpdateCompleted) return;
+  
+  try {
+    const response = await fetch('/api/farm-works/update-status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update work statuses');
     }
+    setStatusUpdateCompleted(true);
+  } catch (err) {
+    console.error('Error updating work statuses:', err);
+    // Try again next time
+    setStatusUpdateCompleted(false);
+  }
+}, [statusUpdateCompleted]);
 
-    fetchUserData(username)
-  }, [router, fetchUserData])
+// Update the useEffect hook
+useEffect(() => {
+  const userType = localStorage.getItem("userType");
+  const username = localStorage.getItem("username");
+
+  if (!userType || !username || userType !== "farmer") {
+    router.push("/login");
+    return;
+  }
+
+  const initialize = async () => {
+    try {
+      await updateExpiredWorks();
+      await fetchUserData(username);
+    } catch (error) {
+      console.error("Initialization error:", error);
+    }
+  };
+
+  initialize();
+
+  // Optional: Add cleanup if needed
+  return () => {
+    // Any cleanup code
+  };
+}, [router, fetchUserData, updateExpiredWorks]);
 
   const getMinDate = () => {
     const tomorrow = new Date()

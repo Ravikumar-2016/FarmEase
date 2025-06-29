@@ -48,17 +48,34 @@ export default function ActiveTasksPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const userType = localStorage.getItem("userType")
-    const username = localStorage.getItem("username")
+ useEffect(() => {
+  const userType = localStorage.getItem("userType")
+  const username = localStorage.getItem("username")
 
-    if (!userType || !username || userType !== "employee") {
-      router.push("/login")
-      return
+  if (!userType || !username || userType !== "employee") {
+    router.push("/login")
+    return
+  }
+
+  // First, trigger the backend to update outdated statuses
+  const updateStatusesAndFetch = async () => {
+    try {
+      await fetch("/api/farm-works/update-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    } catch (err) {
+      console.warn("Status update failed, proceeding to fetch anyway.",err)
+    } finally {
+      fetchFarmWorks() // Always fetch works regardless of update result
     }
+  }
 
-    fetchFarmWorks()
-  }, [router])
+  updateStatusesAndFetch()
+}, [router])
+
 
   const fetchFarmWorks = async () => {
     try {
