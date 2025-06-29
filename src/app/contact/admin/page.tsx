@@ -9,10 +9,13 @@ import { Textarea } from "@/components/ui/text-area"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertTriangle,
+  MessageSquare,
+  ArrowLeft,
   Shield,
   Settings,
   FileText,
@@ -45,6 +48,8 @@ export default function AdminContactPage() {
     setErrorMessage(message)
     setTimeout(() => setErrorMessage(""), 4000)
   }
+
+  const router = useRouter()
 
   const handleIncidentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,6 +90,84 @@ export default function AdminContactPage() {
           </button>
         </div>
       )}
+
+     {/* Header - Desktop */}
+<div className="hidden md:block bg-white shadow-sm border-b border-gray-200">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="flex items-center justify-between">
+      
+      {/* Back Button */}
+      <div className="flex items-center space-x-4">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/dashboard/admin")}
+          className="flex items-center space-x-2 hover:bg-gray-100"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Bact To Dashboard</span>
+        </Button>
+      </div>
+
+      {/* Center Title with Icon */}
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-indigo-100 rounded-lg">
+          <MessageSquare className="h-6 w-6 text-indigo-600" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Support Center</h1>
+          <p className="text-gray-600">Manage employee inquiries and system contacts</p>
+        </div>
+      </div>
+
+      {/* System Health Indicator */}
+      <div className="w-32 flex justify-end items-center space-x-2">
+        <div className="flex flex-col items-end">
+          <span className="text-xs text-gray-500">System Status</span>
+          <div className="flex items-center space-x-1">
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <span className="text-sm font-medium">Operational</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Header - Mobile */}
+<div className="md:hidden bg-white shadow-sm border-b border-gray-200">
+  <div className="px-4 py-3">
+    <div className="flex items-center justify-between relative">
+      
+      {/* Back Button - Left-aligned */}
+      <div className="flex-1 flex justify-start">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/dashboard/admin")}
+          className="flex items-center space-x-1 p-2 -ml-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-sm">Back</span>
+        </Button>
+      </div>
+
+      {/* Title Section - Absolutely centered */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
+        <div className="p-2 bg-indigo-100 rounded-lg">
+          <MessageSquare className="h-5 w-5 text-indigo-600" />
+        </div>
+        <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">Support Center</h1>
+      </div>
+
+      {/* Right spacer for balance */}
+      <div className="flex-1 flex justify-end"></div>
+    </div>
+
+    {/* Subtitle - Centered below */}
+    <p className="text-center text-sm text-gray-600 mt-1">
+      Manage employee inquiries
+    </p>
+  </div>
+</div>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 py-16">
