@@ -5,6 +5,7 @@ import "./globals.css"
 import { Header } from "./header/page"
 import {Footer} from "./footer/page"
 import { Analytics } from "@vercel/analytics/next"
+import { NetworkBanner } from "@/components/network-banner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,7 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen flex flex-col">
           <Header />
-          
+          <NetworkBanner />
           <main className="flex-1">{children}
             <Analytics />
           </main>
