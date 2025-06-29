@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -93,7 +93,7 @@ export default function ManageEmployees() {
   }
 
   // Fetch employees
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/employees")
@@ -111,9 +111,9 @@ export default function ManageEmployees() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
- useEffect(() => {
+  useEffect(() => {
     const userType = localStorage.getItem("userType")
     const username = localStorage.getItem("username")
 
@@ -123,7 +123,7 @@ export default function ManageEmployees() {
     }
 
     fetchEmployees()
-  }, [router])
+  }, [router, fetchEmployees])
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

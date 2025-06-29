@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect,useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -116,7 +116,7 @@ export default function ManagePartners() {
   }, [partners, currentUser])
 
   // Fetch partners
-  const fetchPartners = async () => {
+  const fetchPartners = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/partners")
@@ -133,9 +133,9 @@ export default function ManagePartners() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-   useEffect(() => {
+  useEffect(() => {
     const userType = localStorage.getItem("userType")
     const username = localStorage.getItem("username")
 
@@ -145,7 +145,7 @@ export default function ManagePartners() {
     }
 
     fetchPartners()
-  }, [router])
+  }, [router, fetchPartners])
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -82,19 +82,7 @@ export default function ApplySync() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    const userType = localStorage.getItem("userType")
-    const username = localStorage.getItem("username")
-
-    if (!userType || !username || userType !== "admin") { 
-      router.push("/login")
-      return
-    }
-
-    fetchData()
-  }, [router])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/apply-sync")
@@ -120,7 +108,20 @@ export default function ApplySync() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    const username = localStorage.getItem("username")
+
+    if (!userType || !username || userType !== "admin") { 
+      router.push("/login")
+      return
+    }
+
+    fetchData()
+  }, [router, fetchData])
+
 
   const showDeleteConfirmation = (id: string, type: "job" | "partnership", title: string) => {
     setDeleteConfirmation({
