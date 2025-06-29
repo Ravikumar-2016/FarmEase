@@ -336,10 +336,16 @@ export default function TicketManagement() {
       )}
 
       {/* ✅ Desktop Header - Ticket Management */}
-<div className="hidden md:block text-center mb-8">
-  <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Ticket Management</h1>
-  <p className="text-lg text-slate-600">View and resolve support tickets submitted by employees</p>
+<div className="hidden md:flex flex-col items-center justify-center text-center w-full">
+  <br></br>
+  <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+    Ticket Management
+  </h1>
+  <p className="text-lg text-slate-600">
+    View and resolve support tickets submitted by employees
+  </p>
 </div>
+
 
 {/* ✅ Mobile Header - Ticket Management */}
 <div className="md:hidden bg-white shadow-sm border-b border-gray-200">
