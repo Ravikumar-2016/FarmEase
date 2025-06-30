@@ -2,18 +2,25 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Loading from "@/components/loading"
 
 export default function TermsBanner() {
   const router = useRouter()
   const [agreed, setAgreed] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    setIsLoading(false)
   }, [])
 
   const handleProceed = () => {
     localStorage.setItem("termsAgreed", "true")
     router.push("/home")
+  }
+
+  if (isLoading) {
+    return <Loading />
   }
 
   return (
