@@ -2,14 +2,21 @@
 
 <div align="center">
   <img src="public/FarmEaseLogo.png" alt="FarmEase Logo" height="120" />
-  # **FARMEASE**
-  *Empowering Agriculture Through Technology*
-  
-  **Simplifying agricultural tasks, communication, and access to essential resources**
-  
-  [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-green?style=for-the-badge)](https://farm-ease-seven.vercel.app/)
-  [![GitHub](https://img.shields.io/badge/📂_Source_Code-GitHub-black?style=for-the-badge)](https://github.com/Ravikumar-2016/FarmEase)
-  
+</div>
+
+<h1 align="center"><strong>FARMEASE</strong></h1>
+<p align="center"><em>Empowering Agriculture Through Technology</em></p>
+<p align="center">Simplifying agricultural tasks, communication, and access to essential resources</p>
+
+<p align="center">
+  <a href="https://farm-ease-seven.vercel.app/">
+    <img src="https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-green?style=for-the-badge" alt="Live Demo" />
+  </a>
+  <a href="https://github.com/Ravikumar-2016/FarmEase">
+    <img src="https://img.shields.io/badge/📂_Source_Code-GitHub-black?style=for-the-badge" alt="Source Code" />
+  </a>
+</p>
+
 </div>
 
 ---
