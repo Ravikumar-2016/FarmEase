@@ -1,8 +1,7 @@
 # 🌾 FarmEase - Comprehensive Agriculture Platform
 
 <div align="center">
-  <img src="/placeholder.svg?height=120&width=120" alt="FarmEase Logo" />
-  
+  <img src="public/FarmEaseLogo.png" alt="FarmEase Logo" height="120" />
   # **FARMEASE**
   *Empowering Agriculture Through Technology*
   
