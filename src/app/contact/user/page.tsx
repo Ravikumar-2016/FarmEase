@@ -411,7 +411,7 @@ export default function UserContactPage() {
                       <Phone className="h-5 w-5 text-green-600" />
                       <div>
                         <p className="font-medium">Phone Support</p>
-                        <p className="text-sm text-gray-600">+91 93920 00041</p>
+                        <p className="text-sm text-gray-600">+91 93xxxxxx41</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

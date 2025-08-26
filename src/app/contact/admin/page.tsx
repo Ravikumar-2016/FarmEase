@@ -372,7 +372,7 @@ export default function AdminContactPage() {
                         </p>
                         <p className="text-sm text-gray-600 flex items-center gap-1">
                           <Phone className="h-3 w-3" />
-                          Emergency Hotline: +91 93920 00041
+                          Emergency Hotline: +91 93xxxxxx41
                         </p>
                       </div>
                     </div>
