@@ -13,14 +13,11 @@
     <img src="https://img.shields.io/badge/VISIT%20SITE-00C853?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
   </a>
   <a href="https://github.com/Ravikumar-2016">
-    <img src="https://img.shields.io/badge/SOURCE%20CODE-000000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+    <img src="https://img.shields.io/badge/Git%20Hub-000000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
   </a>
 </p>
 
-
 </div>
-
----
 
 ## 🚀 Overview
 
