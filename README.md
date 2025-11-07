@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://farm-ease-seven.vercel.app/">
-    <img src="https://img.shields.io/badge/VISIT%20SITE-00C853?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
+    <img src="https://img.shields.io/badge/VISIT%20SITE-00C853?" alt="Visit Site" />
   </a>
   <a href="https://github.com/Ravikumar-2016/FarmEase">
     <img src="https://img.shields.io/badge/SOURCE%20CODE-000000?style=for-the-badge&logo=github&logoColor=white" alt="Source Code" />
