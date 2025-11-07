@@ -10,10 +10,10 @@
 
 <p align="center">
   <a href="https://farm-ease-seven.vercel.app/">
-    <img src="https://img.shields.io/badge/VISIT%20SITE-00C853?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
+    <img src="https://img.shields.io/badge/VISIT%20SITE-2E7D32?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
   </a>
   <a href="https://github.com/Ravikumar-2016">
-    <img src="https://img.shields.io/badge/Git%20Hub-000000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+    <img src="https://img.shields.io/badge/GITHUB-24292F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
   </a>
 </p>
 
