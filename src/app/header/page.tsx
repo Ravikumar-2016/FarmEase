@@ -22,6 +22,9 @@ export function Header() {
   const router = useRouter()
   const pathname = usePathname()
 
+  // Detect if the current page is inside dashboard
+  const isDashboardPage = pathname.startsWith("/dashboard")
+
   useEffect(() => {
     const userType = localStorage.getItem("userType")
     const username = localStorage.getItem("username")
@@ -80,9 +83,8 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation and Auth */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {/* Show Navigation Links for both logged-in and non-logged-in users */}
             <nav className="flex items-center space-x-6">
               {navigationLinks.map((link) => (
                 <Link
@@ -96,7 +98,7 @@ export function Header() {
               ))}
             </nav>
 
-            {/* Auth Buttons or User Profile */}
+            {/* Logged in User Dropdown */}
             {isLoggedIn && userInfo ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -106,15 +108,15 @@ export function Header() {
                   >
                     <UserLogo userName={userInfo.username} size="sm" />
                     <span className="font-medium text-gray-700">{userInfo.username}</span>
-                    <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-64 p-2 bg-white border border-gray-200 shadow-xl rounded-xl mt-2 animate-in slide-in-from-top-2 duration-200"
+                  className="w-64 p-2 bg-white border border-gray-200 shadow-xl rounded-xl mt-2"
                   sideOffset={8}
                 >
-                  {/* User Info Header */}
+                  {/* User Header */}
                   <div className="px-3 py-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg mb-2">
                     <div className="flex items-center space-x-3">
                       <UserLogo userName={userInfo.username} size="md" />
@@ -127,28 +129,46 @@ export function Header() {
 
                   <DropdownMenuSeparator className="my-2 bg-gray-100" />
 
-                  {/* Menu Items */}
-                  <DropdownMenuItem
-                    onClick={handleDashboardClick}
-                    className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors duration-150 group"
-                  >
-                    <div className="flex items-center space-x-3 w-full">
-                      <div className="p-1.5 bg-green-100 rounded-md group-hover:bg-green-200 transition-colors">
-                        <User className="h-4 w-4 text-green-600" />
+                  {/* ====== TOGGLE (Dashboard ↔ Home) ====== */}
+                  {isDashboardPage ? (
+                    <DropdownMenuItem
+                      onClick={() => router.push("/home")}
+                      className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3 w-full">
+                        <div className="p-1.5 bg-green-100 rounded-md">
+                          <User className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">Home</p>
+                          <p className="text-xs text-gray-500">Go to home page</p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Dashboard</p>
-                        <p className="text-xs text-gray-500">View your overview</p>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={handleDashboardClick}
+                      className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3 w-full">
+                        <div className="p-1.5 bg-green-100 rounded-md">
+                          <User className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">Dashboard</p>
+                          <p className="text-xs text-gray-500">View your overview</p>
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  )}
 
+                  {/* Settings */}
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <Link
                       href="/settings"
-                      className="px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors duration-150 group flex items-center space-x-3 w-full"
+                      className="px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors group flex items-center space-x-3 w-full"
                     >
-                      <div className="p-1.5 bg-gray-100 rounded-md group-hover:bg-gray-200 transition-colors">
+                      <div className="p-1.5 bg-gray-100 rounded-md group-hover:bg-gray-200">
                         <Settings className="h-4 w-4 text-gray-600" />
                       </div>
                       <div className="flex-1">
@@ -160,12 +180,13 @@ export function Header() {
 
                   <DropdownMenuSeparator className="my-2 bg-gray-100" />
 
+                  {/* Sign Out */}
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-red-50 transition-colors duration-150 group"
+                    className="cursor-pointer px-3 py-2.5 rounded-lg hover:bg-red-50"
                   >
                     <div className="flex items-center space-x-3 w-full">
-                      <div className="p-1.5 bg-red-100 rounded-md group-hover:bg-red-200 transition-colors">
+                      <div className="p-1.5 bg-red-100 rounded-md">
                         <LogOut className="h-4 w-4 text-red-600" />
                       </div>
                       <div className="flex-1">
@@ -190,13 +211,13 @@ export function Header() {
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Dropdown */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white shadow-sm">
             <div className="px-4 pt-3 pb-4 space-y-2">
@@ -204,7 +225,7 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md font-medium transition-colors"
+                  className="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
@@ -214,6 +235,7 @@ export function Header() {
               <div className="border-t pt-3 mt-3">
                 {isLoggedIn && userInfo ? (
                   <div className="space-y-2">
+                    {/* User Info */}
                     <div className="flex items-center px-3 py-3 bg-green-50 rounded-lg">
                       <UserLogo userName={userInfo.username} size="sm" />
                       <div className="ml-3">
@@ -221,20 +243,41 @@ export function Header() {
                         <p className="text-xs text-green-600 capitalize font-medium">{userInfo.userType} Account</p>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50 py-3"
-                      onClick={() => {
-                        handleDashboardClick()
-                        setIsMenuOpen(false)
-                      }}
-                    >
-                      <User className="mr-3 h-4 w-4" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium">Dashboard</p>
-                        <p className="text-xs text-gray-500">View your overview</p>
-                      </div>
-                    </Button>
+
+                    {/* TOGGLE: Dashboard ↔ Home */}
+                    {isDashboardPage ? (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50 py-3"
+                        onClick={() => {
+                          router.push("/home")
+                          setIsMenuOpen(false)
+                        }}
+                      >
+                        <User className="mr-3 h-4 w-4" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium">Home</p>
+                          <p className="text-xs text-gray-500">Go to home page</p>
+                        </div>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-gray-700 hover:text-green-600 hover:bg-green-50 py-3"
+                        onClick={() => {
+                          handleDashboardClick()
+                          setIsMenuOpen(false)
+                        }}
+                      >
+                        <User className="mr-3 h-4 w-4" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium">Dashboard</p>
+                          <p className="text-xs text-gray-500">View your overview</p>
+                        </div>
+                      </Button>
+                    )}
+
+                    {/* Settings */}
                     <Link href="/settings">
                       <Button
                         variant="ghost"
@@ -248,6 +291,8 @@ export function Header() {
                         </div>
                       </Button>
                     </Link>
+
+                    {/* Logout */}
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-red-600 hover:bg-red-50 py-3"
