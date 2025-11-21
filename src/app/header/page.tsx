@@ -63,7 +63,7 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-8 lg:px-12 py-2">
         <div className="flex h-15 items-center justify-between flex-wrap gap-y-4 md:flex-nowrap md:gap-0">
           {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-3 text-decoration-none">
+          <Link href="/home" className="flex items-center gap-3 text-decoration-none">
             <Image
               src="/FarmEaseLogo.png"
               alt="FarmEase Logo"

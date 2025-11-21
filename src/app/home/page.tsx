@@ -1,3 +1,5 @@
+"use client"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -97,6 +99,24 @@ export default function HomePage() {
     },
   ]
 
+  const [userType, setUserType] = useState<string | null>(null)
+const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const user = localStorage.getItem("userType")
+
+    if (user) {
+      setUserType(user)
+      setIsLoggedIn(true)
+    } else {
+      setUserType(null)
+      setIsLoggedIn(false)
+    }
+  }
+}, [])
+
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -119,12 +139,21 @@ export default function HomePage() {
                 forecasting, and seamless agricultural coordination.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/signup">
-                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
-                    Start Your Journey
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                {!isLoggedIn ? (
+  <Link href="/signup">
+    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
+      Start Your Journey
+      <ArrowRight className="ml-2 h-5 w-5" />
+    </Button>
+  </Link>
+) : (
+  <Link href={`/dashboard/${userType?.toLowerCase()}`}>
+    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
+      Go to Dashboard
+      <ArrowRight className="ml-2 h-5 w-5" />
+    </Button>
+  </Link>
+)}
                 <Link href="/features">
                   <Button
                     variant="outline"
@@ -293,6 +322,7 @@ export default function HomePage() {
       </section>
 
       {/* Opportunities Section */}
+      {userType?.toLowerCase() !== "admin" && (
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -363,6 +393,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Future Vision Section */}
       <section className="py-20 bg-green-600">
@@ -403,34 +434,27 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-emerald-700 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Agricultural Journey?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of farmers, laborers, and agricultural professionals who trust FarmEase for their daily
-            operations.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
-                Get Started Today
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-gray-900 px-8 py-3 text-lg"
-              >
-                Contact Our Team
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {!isLoggedIn && (
+  <section className="py-20 bg-emerald-700 text-white">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+        Ready to Transform Your Agricultural Journey?
+      </h2>
+      <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+        Join thousands of farmers, laborers, and agricultural professionals who trust FarmEase for their daily
+        operations.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Link href="/signup">
+          <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg">
+            Get Started Today
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </section>
+)}
     </div>
   )
 }
