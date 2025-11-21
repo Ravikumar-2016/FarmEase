@@ -10,8 +10,18 @@ export default function RootRedirect() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const userType = localStorage.getItem("userType")
+    
+    // If user is logged in → redirect to dashboard
+    if (userType) {
+      router.replace(`/dashboard/${userType.toLowerCase()}`)
+      return
+    }
+
+    // If not logged-in → follow your existing logic
     const agreed = localStorage.getItem("termsAgreed")
     setIsLoading(false)
+
     if (agreed === "true") {
       router.replace("/home")
     } else {
