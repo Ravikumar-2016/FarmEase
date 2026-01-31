@@ -9,7 +9,7 @@
 <p align="center">Simplifying agricultural tasks, communication, and access to essential resources</p>
 
 <p align="center">
-  <a href="https://farm-ease-seven.vercel.app/">
+  <a href="https://farm-ease-umber.vercel.app/">
     <img src="https://img.shields.io/badge/VISIT%20SITE-2E7D32?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
   </a>
   <a href="https://github.com/Ravikumar-2016">
@@ -121,14 +121,14 @@ Comprehensive platform oversight and management:
 
 ## 🌐 Links
 
-- **🔗 Live Application**: [https://farm-ease-seven.vercel.app/](https://farm-ease-seven.vercel.app/)
+- **🔗 Live Application**: [https://farm-ease-umber.vercel.app/](https://farm-ease-umber.vercel.app/)
 - **📂 Source Code**: [https://github.com/Ravikumar-2016/FarmEase](https://github.com/Ravikumar-2016/FarmEase)
 
 ---
 
 ## 🚀 Getting Started
 
-1. **Visit the Platform**: Navigate to [farm-ease-seven.vercel.app](https://farm-ease-seven.vercel.app/)
+1. **Visit the Platform**: Navigate to [https://farm-ease-umber.vercel.app/](https://farm-ease-umber.vercel.app/)
 2. **Choose Your Role**: Select from Farmer, Labour, Employee, or Admin
 3. **Create Account**: Register with your details and role-specific information
 4. **Explore Features**: Access the comprehensive tools designed for your role
