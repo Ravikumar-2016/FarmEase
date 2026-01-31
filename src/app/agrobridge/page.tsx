@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +37,8 @@ import {
   Trash2,
   X,
   Ban,
+  Sparkles,
+  ChevronRight,
 } from "lucide-react"
 
 interface LabourApplication {
@@ -473,10 +476,50 @@ useEffect(() => {
     setErrorMessage(null)
   }
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut" as const,
+      },
+    },
+  }
+
+  const statsCardVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut" as const,
+      },
+    },
+  }
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
-        <div className="flex flex-col items-center gap-4 max-w-md px-4">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+        <motion.div 
+          className="flex flex-col items-center gap-4 max-w-md px-4"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="relative">
             <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
             <Users className="absolute inset-0 m-auto h-6 w-6 text-green-600" />
@@ -485,7 +528,7 @@ useEffect(() => {
             <h3 className="text-lg font-semibold text-gray-800 mb-1">Loading AgroBridge</h3>
             <p className="text-gray-600 text-sm">Connecting farmers with laborers...</p>
           </div>
-        </div>
+        </motion.div>
       </div>
     )
   }
@@ -494,27 +537,26 @@ useEffect(() => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 relative">
       {/* Toast Container */}
       <ToastContainer
-  toasts={toasts.map((toast: Toast) => ({
-    id: toast.id,
-    message: toast.message || toast.title || "",
-    type:
-      toast.type === "success" ||
-      toast.type === "error" ||
-      toast.type === "warning" ||
-      toast.type === "info" ||
-      toast.type === "destructive"
-        ? toast.type
-        : toast.variant === "success" ||
-          toast.variant === "error" ||
-          toast.variant === "warning" ||
-          toast.variant === "info" ||
-          toast.variant === "destructive"
-        ? toast.variant
-        : "info",
-    // add other properties if needed
-  }))}
-  onRemove={removeToast}
-/>
+        toasts={toasts.map((toast: Toast) => ({
+          id: toast.id,
+          message: toast.message || toast.title || "",
+          type:
+            toast.type === "success" ||
+            toast.type === "error" ||
+            toast.type === "warning" ||
+            toast.type === "info" ||
+            toast.type === "destructive"
+              ? toast.type
+              : toast.variant === "success" ||
+                toast.variant === "error" ||
+                toast.variant === "warning" ||
+                toast.variant === "info" ||
+                toast.variant === "destructive"
+              ? toast.variant
+              : "info",
+        }))}
+        onRemove={removeToast}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmationModal
@@ -537,7 +579,12 @@ useEffect(() => {
       />
 
       {/* Header */}
-      <div className="relative z-10 bg-white border-b border-gray-200 shadow-sm">
+      <motion.div 
+        className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200 shadow-sm"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="max-w-7xl mx-auto">
           {/* Mobile Header */}
           <div className="lg:hidden px-3 py-3">
@@ -553,10 +600,15 @@ useEffect(() => {
               </Button>
 
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full">
+                <motion.div 
+                  className="p-1.5 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full"
+                  whileHover={{ scale: 1.1 }}
+                >
                   <Users className="h-4 w-4 text-green-600" />
-                </div>
-                <h1 className="text-lg font-bold text-gray-900 leading-tight">AgroBridge</h1>
+                </motion.div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight">
+                  AgroBridge
+                </h1>
               </div>
 
               {user && (
@@ -581,22 +633,30 @@ useEffect(() => {
           {/* Desktop Header */}
           <div className="hidden lg:block px-8 py-6">
             <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/dashboard/farmer")}
-                className="flex items-center gap-2 text-gray-700 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="font-medium">Back to Dashboard</span>
-              </Button>
+              <motion.div whileHover={{ x: -5 }}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/farmer")}
+                  className="flex items-center gap-2 text-gray-700 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all duration-200 shadow-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="font-medium">Back to Dashboard</span>
+                </Button>
+              </motion.div>
 
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="p-3 bg-gradient-to-br from-green-100 to-emerald-200 rounded-xl shadow-sm">
+                  <motion.div 
+                    className="p-3 bg-gradient-to-br from-green-100 to-emerald-200 rounded-xl shadow-lg"
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
                     <Users className="h-8 w-8 text-green-600" />
-                  </div>
+                  </motion.div>
                   <div className="text-center">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-1">AgroBridge</h1>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-1">
+                      AgroBridge
+                    </h1>
                     <p className="text-gray-600">Connect farmers with skilled laborers</p>
                   </div>
                 </div>
@@ -619,123 +679,169 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-4 px-3 sm:px-6 lg:px-8">
-        <div className="space-y-6">
+        <motion.div 
+          className="space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Dashboard Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-            <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-3 lg:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-600 text-xs lg:text-sm font-medium">Total Works</p>
-                    <p className="text-xl lg:text-2xl font-bold text-blue-900">{stats.totalWorks}</p>
+          <motion.div 
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
+            variants={containerVariants}
+          >
+            <motion.div variants={statsCardVariants} whileHover={{ scale: 1.03, y: -3 }}>
+              <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden relative">
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
+                <CardContent className="p-3 lg:p-5 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-100 text-xs lg:text-sm font-medium">Total Works</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-white">{stats.totalWorks}</p>
+                    </div>
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <FileText className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+                    </div>
                   </div>
-                  <FileText className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-3 lg:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-600 text-xs lg:text-sm font-medium">Active Works</p>
-                    <p className="text-xl lg:text-2xl font-bold text-green-900">{stats.activeWorks}</p>
+            <motion.div variants={statsCardVariants} whileHover={{ scale: 1.03, y: -3 }}>
+              <Card className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden relative">
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
+                <CardContent className="p-3 lg:p-5 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-100 text-xs lg:text-sm font-medium">Active Works</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-white">{stats.activeWorks}</p>
+                    </div>
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <Activity className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+                    </div>
                   </div>
-                  <Activity className="h-6 w-6 lg:h-8 lg:w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
-              <CardContent className="p-3 lg:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-purple-600 text-xs lg:text-sm font-medium">Completed</p>
-                    <p className="text-xl lg:text-2xl font-bold text-purple-900">{stats.completedWorks}</p>
+            <motion.div variants={statsCardVariants} whileHover={{ scale: 1.03, y: -3 }}>
+              <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-violet-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden relative">
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
+                <CardContent className="p-3 lg:p-5 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-100 text-xs lg:text-sm font-medium">Completed</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-white">{stats.completedWorks}</p>
+                    </div>
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <CheckCircle className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+                    </div>
                   </div>
-                  <CheckCircle className="h-6 w-6 lg:h-8 lg:w-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
-              <CardContent className="p-3 lg:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-600 text-xs lg:text-sm font-medium">Applications</p>
-                    <p className="text-xl lg:text-2xl font-bold text-orange-900">{stats.totalApplications}</p>
+            <motion.div variants={statsCardVariants} whileHover={{ scale: 1.03, y: -3 }}>
+              <Card className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden relative">
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full" />
+                <CardContent className="p-3 lg:p-5 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-100 text-xs lg:text-sm font-medium">Applications</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-white">{stats.totalApplications}</p>
+                    </div>
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+                    </div>
                   </div>
-                  <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
 
           {/* Error Alert */}
-          {errorMessage && (
-            <Alert variant="destructive" className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="flex justify-between items-center">
-                <span>{errorMessage}</span>
-                <Button variant="ghost" size="sm" onClick={clearMessages} className="h-6 w-6 p-0">
-                  <X className="h-4 w-4" />
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
+          <AnimatePresence>
+            {errorMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <Alert variant="destructive" className="border-red-200 bg-red-50 shadow-md">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="flex justify-between items-center">
+                    <span>{errorMessage}</span>
+                    <Button variant="ghost" size="sm" onClick={clearMessages} className="h-6 w-6 p-0">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <Tabs defaultValue="add-work" className="w-full" ref={tabsRef}>
-            <TabsList className="grid w-full grid-cols-3 bg-white shadow-md border border-gray-200 rounded-lg h-auto p-1 mb-6">
-              <TabsTrigger
-                value="add-work"
-                data-value="add-work"
-                className="flex items-center gap-1 lg:gap-2 py-2 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-green-50"
-              >
-                <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
-                <span className="hidden sm:inline">Add New Work</span>
-                <span className="sm:hidden">Add</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="active-works"
-                data-value="active-works"
-                className="flex items-center gap-1 lg:gap-2 py-2 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-blue-50"
-              >
-                <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
-                <span className="hidden sm:inline">Active ({stats.activeWorks})</span>
-                <span className="sm:hidden">Active</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="past-works"
-                data-value="past-works"
-                className="flex items-center gap-1 lg:gap-2 py-2 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-gray-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-50"
-              >
-                <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4" />
-                <span className="hidden sm:inline">Past ({stats.completedWorks})</span>
-                <span className="sm:hidden">Past</span>
-              </TabsTrigger>
-            </TabsList>
+          <motion.div variants={itemVariants}>
+            <Tabs defaultValue="add-work" className="w-full" ref={tabsRef}>
+              <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm shadow-xl border border-gray-200 rounded-xl h-auto p-1.5 mb-6">
+                <TabsTrigger
+                  value="add-work"
+                  data-value="add-work"
+                  className="flex items-center gap-1 lg:gap-2 py-2.5 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-green-50"
+                >
+                  <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden sm:inline">Add New Work</span>
+                  <span className="sm:hidden">Add</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="active-works"
+                  data-value="active-works"
+                  className="flex items-center gap-1 lg:gap-2 py-2.5 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-blue-50"
+                >
+                  <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden sm:inline">Active ({stats.activeWorks})</span>
+                  <span className="sm:hidden">Active</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="past-works"
+                  data-value="past-works"
+                  className="flex items-center gap-1 lg:gap-2 py-2.5 lg:py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-gray-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-gray-50"
+                >
+                  <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden sm:inline">Past ({stats.completedWorks})</span>
+                  <span className="sm:hidden">Past</span>
+                </TabsTrigger>
+              </TabsList>
 
             {/* Add New Work Tab */}
             <TabsContent value="add-work" className="space-y-6">
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-green-50">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg border-b border-green-100">
-                  <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Plus className="h-4 w-4 lg:h-5 lg:w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <span className="text-gray-900">Post New Work Request</span>
-                      <CardDescription className="mt-1 text-sm">
-                        Create a work request for laborers in your area
-                      </CardDescription>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 lg:p-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-green-50/30 to-white overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 rounded-t-lg border-b border-green-100">
+                    <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
+                      <motion.div 
+                        className="p-2.5 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <Plus className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+                      </motion.div>
+                      <div>
+                        <span className="text-gray-900">Post New Work Request</span>
+                        <CardDescription className="mt-1 text-sm">
+                          Create a work request for laborers in your area
+                        </CardDescription>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 lg:p-6">
                   {crops.length === 0 ? (
                     <Alert className="border-amber-200 bg-amber-50">
                       <Sprout className="h-4 w-4 text-amber-600" />
@@ -903,7 +1009,7 @@ useEffect(() => {
                       <Button
                         type="submit"
                         disabled={submitting || crops.length === 0}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-3 h-12 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                        className="w-full bg-gradient-to-r from-green-600 via-green-600 to-emerald-600 hover:from-green-700 hover:via-green-700 hover:to-emerald-700 text-white font-medium py-3 h-12 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         {submitting ? (
                           <>
@@ -912,7 +1018,7 @@ useEffect(() => {
                           </>
                         ) : (
                           <>
-                            <Plus className="mr-2 h-5 w-5" />
+                            <Sparkles className="mr-2 h-5 w-5" />
                             Post Work Request
                           </>
                         )}
@@ -921,45 +1027,75 @@ useEffect(() => {
                   )}
                 </CardContent>
               </Card>
+              </motion.div>
             </TabsContent>
 
             {/* Active Works Tab */}
             <TabsContent value="active-works" className="space-y-6">
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg border-b border-blue-100">
-                  <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Clock className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <span className="text-gray-900">Active Work Requests ({stats.activeWorks})</span>
-                      <CardDescription className="mt-1 text-sm">
-                        Track applications and manage your active work requests
-                      </CardDescription>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 lg:p-6">
-                  {activeWorks.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Clock className="h-8 w-8 text-blue-600" />
-                      </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Work Requests</h3>
-                      <p className="text-gray-500 mb-4">You haven&apos;t posted any work requests yet</p>
-                      <Button
-                        variant="outline"
-                        onClick={navigateToAddWork}
-                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-blue-50/30 to-white overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 rounded-t-lg border-b border-blue-100">
+                    <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
+                      <motion.div 
+                        className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.5 }}
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Post Your First Work Request
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {activeWorks.map((work) => (
-                        <Card key={work._id} className="border border-blue-200 hover:shadow-md transition-shadow">
+                        <Clock className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+                      </motion.div>
+                      <div>
+                        <span className="text-gray-900">Active Work Requests ({stats.activeWorks})</span>
+                        <CardDescription className="mt-1 text-sm">
+                          Track applications and manage your active work requests
+                        </CardDescription>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 lg:p-6">
+                    <AnimatePresence mode="wait">
+                      {activeWorks.length === 0 ? (
+                        <motion.div 
+                          className="text-center py-12"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                        >
+                          <motion.div 
+                            className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4"
+                            whileHover={{ scale: 1.1 }}
+                          >
+                            <Clock className="h-8 w-8 text-blue-600" />
+                          </motion.div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Work Requests</h3>
+                          <p className="text-gray-500 mb-4">You haven&apos;t posted any work requests yet</p>
+                          <Button
+                            variant="outline"
+                            onClick={navigateToAddWork}
+                            className="border-blue-300 text-blue-700 hover:bg-blue-50 shadow-md"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Post Your First Work Request
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div 
+                          className="space-y-6"
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          {activeWorks.map((work, index) => (
+                            <motion.div
+                              key={work._id}
+                              variants={itemVariants}
+                              whileHover={{ scale: 1.01 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Card className="border-2 border-blue-200 hover:border-blue-300 hover:shadow-xl transition-all bg-gradient-to-br from-white to-blue-50/50">
                           <CardContent className="p-4 lg:p-6">
                             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
                               <div className="flex-1 min-w-0">
@@ -1096,21 +1232,33 @@ useEffect(() => {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </TabsContent>
 
             {/* Past Works Tab */}
             <TabsContent value="past-works" className="space-y-6">
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-                <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg border-b border-gray-100">
-                  <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-gray-600" />
-                    </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 via-slate-50 to-gray-50 rounded-t-lg border-b border-gray-100">
+                    <CardTitle className="flex items-center gap-3 text-lg lg:text-xl">
+                      <motion.div 
+                        className="p-2.5 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl shadow-lg"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+                      </motion.div>
                     <div>
                       <span className="text-gray-900">Past Works ({stats.completedWorks})</span>
                       <CardDescription className="mt-1 text-sm">
@@ -1120,45 +1268,65 @@ useEffect(() => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 lg:p-6">
-                  {pastWorks.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="h-8 w-8 text-gray-600" />
-                      </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Past Works</h3>
-                      <p className="text-gray-500">Your completed and cancelled work requests will appear here</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {pastWorks.map((work) => (
-                        <Card key={work._id} className="border border-gray-200 hover:shadow-md transition-shadow">
-                          <CardContent className="p-4 lg:p-6">
-                            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 lg:gap-3 mb-3">
-                                  <h3 className="font-semibold text-lg lg:text-xl text-gray-900 break-words">
-                                    <span className="break-all">{work.cropName}</span> -{" "}
-                                    <span className="break-all">{work.workType}</span>
-                                  </h3>
-                                  <Badge
-                                    className={`${getWorkTypeColor(work.workType)} flex-shrink-0`}
-                                    variant="outline"
-                                  >
-                                    <span className="truncate max-w-[100px] sm:max-w-none">{work.workType}</span>
-                                  </Badge>
-                                  <Badge className={`${getStatusColor(work.status)} flex-shrink-0`} variant="outline">
-                                    {work.status}
-                                  </Badge>
-                                </div>
+                  <AnimatePresence mode="wait">
+                    {pastWorks.length === 0 ? (
+                      <motion.div 
+                        className="text-center py-12"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                      >
+                        <motion.div 
+                          className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4"
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <CheckCircle className="h-8 w-8 text-gray-600" />
+                        </motion.div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Past Works</h3>
+                        <p className="text-gray-500">Your completed and cancelled work requests will appear here</p>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        className="space-y-6"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        {pastWorks.map((work, index) => (
+                          <motion.div
+                            key={work._id}
+                            variants={itemVariants}
+                            whileHover={{ scale: 1.01 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Card className="border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all bg-gradient-to-br from-white to-gray-50/50">
+                              <CardContent className="p-4 lg:p-6">
+                                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2 lg:gap-3 mb-3">
+                                      <h3 className="font-semibold text-lg lg:text-xl text-gray-900 break-words">
+                                        <span className="break-all">{work.cropName}</span> -{" "}
+                                        <span className="break-all">{work.workType}</span>
+                                      </h3>
+                                      <Badge
+                                        className={`${getWorkTypeColor(work.workType)} flex-shrink-0`}
+                                        variant="outline"
+                                      >
+                                        <span className="truncate max-w-[100px] sm:max-w-none">{work.workType}</span>
+                                      </Badge>
+                                      <Badge className={`${getStatusColor(work.status)} flex-shrink-0`} variant="outline">
+                                        {work.status}
+                                      </Badge>
+                                    </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 text-sm text-gray-600 mb-4">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Calendar className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                                    <span className="truncate">
-                                      <strong>Work Date:</strong> {formatDate(work.workDate)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 text-sm text-gray-600 mb-4">
+                                      <div className="flex items-center gap-2 min-w-0 p-2 bg-blue-50 rounded-lg">
+                                        <Calendar className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                        <span className="truncate">
+                                          <strong>Work Date:</strong> {formatDate(work.workDate)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 min-w-0 p-2 bg-green-50 rounded-lg">
                                     <Users className="h-4 w-4 text-green-500 flex-shrink-0" />
                                     <span className="truncate">
                                       <strong>Workers:</strong> {work.labourApplications.length}/{work.laboursRequired}
@@ -1243,17 +1411,22 @@ useEffect(() => {
                                 </div>
                               </div>
                             )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-    </div>
-  )
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
+      </motion.div>
+    </main>
+  </div>
+)
+
 }

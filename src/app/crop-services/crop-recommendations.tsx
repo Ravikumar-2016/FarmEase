@@ -1,14 +1,12 @@
 "use client"
 import { useState } from "react"
 import type React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   Leaf,
   Thermometer,
@@ -21,6 +19,8 @@ import {
   RefreshCw,
   Check,
   AlertCircle,
+  Sparkles,
+  Zap,
 } from "lucide-react"
 import { useToast } from "@/app/hooks/use-toast"
 
@@ -37,14 +37,40 @@ type CropFormData = {
 }
 
 const cropInputRanges = {
-  Temperature: { min: 0, max: 55, unit: "°C", suggestion: "15-35°C optimal for most crops" },
-  Humidity: { min: 10, max: 100, unit: "%", suggestion: "40-80% ideal humidity range" },
-  Rainfall: { min: 0, max: 3000, unit: "mm", suggestion: "200-4000mm annual rainfall" },
-  PH: { min: 0, max: 14, unit: "", suggestion: "6.0-7.5 pH for most crops" },
-  Nitrogen: { min: 0, max: 300, unit: "kg/ha", suggestion: "50-200 kg/ha typical" },
-  Phosphorous: { min: 0, max: 150, unit: "kg/ha", suggestion: "20-80 kg/ha typical" },
-  Potassium: { min: 0, max: 200, unit: "kg/ha", suggestion: "30-120 kg/ha typical" },
-  Carbon: { min: 0, max: 5, unit: "%", suggestion: "0.5-3% organic carbon" },
+  Temperature: { min: 0, max: 55, unit: "°C", suggestion: "15-35°C optimal for most crops", icon: "🌡️" },
+  Humidity: { min: 10, max: 100, unit: "%", suggestion: "40-80% ideal humidity range", icon: "💧" },
+  Rainfall: { min: 0, max: 3000, unit: "mm", suggestion: "200-4000mm annual rainfall", icon: "🌧️" },
+  PH: { min: 0, max: 14, unit: "", suggestion: "6.0-7.5 pH for most crops", icon: "⚗️" },
+  Nitrogen: { min: 0, max: 300, unit: "kg/ha", suggestion: "50-200 kg/ha typical", icon: "🧪" },
+  Phosphorous: { min: 0, max: 150, unit: "kg/ha", suggestion: "20-80 kg/ha typical", icon: "🔬" },
+  Potassium: { min: 0, max: 200, unit: "kg/ha", suggestion: "30-120 kg/ha typical", icon: "⚡" },
+  Carbon: { min: 0, max: 5, unit: "%", suggestion: "0.5-3% organic carbon", icon: "🌱" },
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" }
+  }
 }
 
 export default function CropRecommendation() {
@@ -245,136 +271,166 @@ export default function CropRecommendation() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto relative">
-      <Card className="shadow-xl border-0 bg-white">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-3 text-xl sm:text-2xl">
-            <Leaf className="h-6 w-6 sm:h-7 sm:w-7" />
-            Crop Recommendation
-          </CardTitle>
-          <CardDescription className="text-blue-100 text-sm sm:text-base">
-            Discover the best crops for your soil and environmental conditions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 lg:p-8">
-          
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Environmental Parameters */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <Thermometer className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
-                Environmental Parameters
-              </h3>
+    <motion.div 
+      className="w-full"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* Form Section */}
+      <motion.div variants={itemVariants} className="space-y-6">
+        {/* Input Groups */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Environmental Parameters Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl shadow-lg">
+                <Thermometer className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Environment</h3>
+                <p className="text-xs text-gray-500">Weather conditions</p>
+              </div>
+            </div>
+            <div className="space-y-5">
               {(["Temperature", "Humidity", "Rainfall"] as const).map((field) => (
                 <div key={field} className="space-y-2">
-                  <Label htmlFor={field.toLowerCase()} className="text-sm font-semibold text-gray-700">
-                    {field} ({cropInputRanges[field].unit}) *
+                  <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <span>{cropInputRanges[field].icon}</span>
+                    {field} 
+                    <span className="text-gray-400 font-normal">({cropInputRanges[field].unit})</span>
                   </Label>
-                  <Input
-                    id={field.toLowerCase()}
-                    type="number"
-                    name={field}
-                    value={cropData[field]}
-                    onChange={handleCropChange}
-                    placeholder={`Enter ${field.toLowerCase()}`}
-                    className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
-                      validationErrors[field] ? "border-red-500" : ""
-                    }`}
-                    min={cropInputRanges[field].min}
-                    max={cropInputRanges[field].max}
-                    step="1"
-                    required
-                  />
-                  {validationErrors[field] && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
-                  )}
-                  <div className="flex items-start gap-2 text-xs text-gray-500">
-                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                    <span>{cropInputRanges[field].suggestion}</span>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      name={field}
+                      value={cropData[field]}
+                      onChange={handleCropChange}
+                      placeholder={`Enter ${field.toLowerCase()}`}
+                      className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-orange-500/20 ${
+                        validationErrors[field] 
+                          ? "border-red-400 focus:border-red-500" 
+                          : "border-orange-200 focus:border-orange-500"
+                      }`}
+                      min={cropInputRanges[field].min}
+                      max={cropInputRanges[field].max}
+                      step="1"
+                    />
+                    {validationErrors[field] && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-red-500 text-xs mt-1.5 flex items-center gap-1"
+                      >
+                        <AlertCircle className="h-3 w-3" />
+                        {validationErrors[field]}
+                      </motion.p>
+                    )}
                   </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Info className="h-3 w-3" />
+                    {cropInputRanges[field].suggestion}
+                  </p>
                 </div>
               ))}
             </div>
+          </motion.div>
 
-            {/* Soil Conditions */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <Droplets className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-                Soil Conditions
-              </h3>
-
+          {/* Soil Conditions Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg">
+                <Droplets className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Soil Conditions</h3>
+                <p className="text-xs text-gray-500">pH, carbon & type</p>
+              </div>
+            </div>
+            <div className="space-y-5">
               {/* pH Level */}
               <div className="space-y-2">
-                <Label htmlFor="ph" className="text-sm font-semibold text-gray-700">
-                  pH Level ({cropInputRanges.PH.unit}) *
+                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <span>{cropInputRanges.PH.icon}</span>
+                  pH Level
                 </Label>
                 <Input
-                  id="ph"
                   type="number"
                   name="PH"
                   value={cropData.PH}
                   onChange={handleCropChange}
                   placeholder="Enter pH level"
-                  className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
-                    validationErrors.PH ? "border-red-500" : ""
+                  className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-blue-500/20 ${
+                    validationErrors.PH 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-blue-200 focus:border-blue-500"
                   }`}
                   min={cropInputRanges.PH.min}
                   max={cropInputRanges.PH.max}
                   step="0.1"
-                  required
                 />
-                {validationErrors.PH && <p className="text-red-500 text-xs mt-1">{validationErrors.PH}</p>}
-                <div className="flex items-start gap-2 text-xs text-gray-500">
-                  <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                  <span>{cropInputRanges.PH.suggestion}</span>
-                </div>
+                {validationErrors.PH && (
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />{validationErrors.PH}
+                  </motion.p>
+                )}
+                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Info className="h-3 w-3" />{cropInputRanges.PH.suggestion}
+                </p>
               </div>
 
               {/* Carbon */}
               <div className="space-y-2">
-                <Label htmlFor="carbon" className="text-sm font-semibold text-gray-700">
-                  Carbon (%) ({cropInputRanges.Carbon.unit}) *
+                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <span>{cropInputRanges.Carbon.icon}</span>
+                  Carbon <span className="text-gray-400 font-normal">(%)</span>
                 </Label>
                 <Input
-                  id="carbon"
                   type="number"
                   name="Carbon"
                   value={cropData.Carbon}
                   onChange={handleCropChange}
                   placeholder="Enter carbon level"
-                  className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
-                    validationErrors.Carbon ? "border-red-500" : ""
+                  className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-blue-500/20 ${
+                    validationErrors.Carbon 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-blue-200 focus:border-blue-500"
                   }`}
                   min={cropInputRanges.Carbon.min}
                   max={cropInputRanges.Carbon.max}
                   step="0.1"
-                  required
                 />
                 {validationErrors.Carbon && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.Carbon}</p>
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />{validationErrors.Carbon}
+                  </motion.p>
                 )}
-                <div className="flex items-start gap-2 text-xs text-gray-500">
-                  <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                  <span>{cropInputRanges.Carbon.suggestion}</span>
-                </div>
+                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Info className="h-3 w-3" />{cropInputRanges.Carbon.suggestion}
+                </p>
               </div>
 
               {/* Soil Type */}
-              <div className="space-y-2 pb-4">
-                <Label htmlFor="soil-type-crop" className="text-sm font-semibold text-gray-700">
-                  Soil Type *
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  🌍 Soil Type
                 </Label>
                 <Select value={cropData.Soil} onValueChange={handleSelectChange}>
-                  <SelectTrigger className="w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors bg-white">
+                  <SelectTrigger className="w-full h-12 bg-white/80 backdrop-blur border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     <SelectValue placeholder="Select soil type" />
                   </SelectTrigger>
-                  <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg max-h-60 overflow-y-auto rounded-lg">
+                  <SelectContent className="bg-white/95 backdrop-blur-xl border border-blue-100 shadow-xl rounded-xl">
                     {["Loamy Soil", "Peaty Soil", "Acidic Soil", "Neutral Soil", "Alkaline Soil"].map((soil) => (
                       <SelectItem
                         key={soil}
                         value={soil}
-                        className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-4 py-3 text-sm font-medium transition-colors"
+                        className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-4 py-3 rounded-lg transition-colors"
                       >
                         {soil}
                       </SelectItem>
@@ -383,144 +439,223 @@ export default function CropRecommendation() {
                 </Select>
               </div>
             </div>
+          </motion.div>
 
-            {/* Nutrient Analysis */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                Nutrient Analysis
-              </h3>
+          {/* Nutrient Analysis Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Nutrients</h3>
+                <p className="text-xs text-gray-500">NPK analysis</p>
+              </div>
+            </div>
+            <div className="space-y-5">
               {(["Nitrogen", "Phosphorous", "Potassium"] as const).map((field) => (
                 <div key={field} className="space-y-2">
-                  <Label htmlFor={field.toLowerCase() + "-crop"} className="text-sm font-semibold text-gray-700">
-                    {field} ({cropInputRanges[field].unit}) *
+                  <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <span>{cropInputRanges[field].icon}</span>
+                    {field} 
+                    <span className="text-gray-400 font-normal">({cropInputRanges[field].unit})</span>
                   </Label>
                   <Input
-                    id={field.toLowerCase() + "-crop"}
                     type="number"
                     name={field}
                     value={cropData[field]}
                     onChange={handleCropChange}
                     placeholder={`Enter ${field.toLowerCase()} level`}
-                    className={`w-full h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg transition-colors ${
-                      validationErrors[field] ? "border-red-500" : ""
+                    className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-emerald-500/20 ${
+                      validationErrors[field] 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-emerald-200 focus:border-emerald-500"
                     }`}
                     min={cropInputRanges[field].min}
                     max={cropInputRanges[field].max}
-                    required
                   />
                   {validationErrors[field] && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
+                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{validationErrors[field]}
+                    </motion.p>
                   )}
-                  <div className="flex items-start gap-2 text-xs text-gray-500">
-                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                    <span>{cropInputRanges[field].suggestion}</span>
-                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Info className="h-3 w-3" />{cropInputRanges[field].suggestion}
+                  </p>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
+        </div>
 
-          <Separator className="my-6 sm:my-8" />
-
+        {/* Service Wake-up Message */}
+        <AnimatePresence>
           {isLoading && showRetryMessage && (
-            <Alert className="mb-6 border-yellow-200 bg-yellow-50">
-              <RefreshCw className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">
-                <strong>Service is starting up...</strong> Render free tier services may take 30-60 seconds to wake up.
-                Please wait or try again if it takes too long.
-                {retryCount > 0 && ` (Attempt ${retryCount + 1})`}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex justify-center mb-6">
-            <Button
-              onClick={handleCropSubmit}
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 text-base sm:text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-              size="lg"
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3"
             >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></div>
-                  {showRetryMessage ? "Waking up service..." : "Analyzing..."}
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Get Crop Recommendation
-                </>
-              )}
-            </Button>
-          </div>
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />
+              </div>
+              <div>
+                <p className="font-semibold text-amber-800">Service is waking up...</p>
+                <p className="text-sm text-amber-700">Free tier services may take 30-60 seconds. Please wait.</p>
+                {retryCount > 0 && <p className="text-xs text-amber-600 mt-1">Attempt {retryCount + 1}</p>}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
+        {/* Submit Button */}
+        <motion.div variants={itemVariants} className="flex justify-center pt-2">
+          <Button
+            onClick={handleCropSubmit}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 min-w-[280px] group"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                {showRetryMessage ? "Connecting to AI..." : "Analyzing Your Data..."}
+              </span>
+            ) : (
+              <span className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                Get AI Crop Recommendation
+                <Zap className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              </span>
+            )}
+          </Button>
+        </motion.div>
+
+        {/* Results Section */}
+        <AnimatePresence mode="wait">
           {showRecommendation && cropResult && (
-            <div className="mt-6 space-y-4 animate-fade-in">
-              <Alert className="border-blue-200 bg-blue-50 p-4 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
-                <AlertDescription className="text-blue-800 text-sm sm:text-base">
-                  <strong className="text-base sm:text-lg">Recommended Crop:</strong>
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 sm:ml-3 bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold"
-                  >
-                    {cropResult}
-                  </Badge>
-                </AlertDescription>
-              </Alert>
-
-              {errorMessage && (
-                <Alert className="border-red-200 bg-red-50 p-4 rounded-lg">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  <AlertDescription className="text-red-800 text-sm sm:text-base">
-                    <strong>Error:</strong> {errorMessage}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {!cropResult.includes("Error") && cropResult !== "Unable to generate recommendation" && (
-                <div className="flex justify-center pt-2">
-                  {!cropSaved ? (
-                    <Button
-                      onClick={handleAddCropToDatabase}
-                      disabled={isSaving}
-                      variant="outline"
-                      className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-green-600 mr-2"></div>
-                          Adding to My Crops...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                          Add This Crop to My Crops
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2 text-green-600 font-semibold text-sm sm:text-base">
-                      <Check className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span>Crop Added to Your Collection</span>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-4"
+            >
+              {/* Success Result */}
+              {!cropResult.includes("Error") && cropResult !== "Unable to generate recommendation" && cropResult !== "Something went wrong." ? (
+                <motion.div 
+                  className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl"
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur">
+                      <CheckCircle className="h-8 w-8" />
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                    <div>
+                      <p className="text-emerald-100 text-sm font-medium">AI Recommendation</p>
+                      <h3 className="text-2xl font-bold">Perfect Crop Match Found!</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur rounded-xl p-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-emerald-100 text-sm mb-1">Recommended Crop</p>
+                      <div className="flex items-center gap-3">
+                        <Leaf className="h-7 w-7" />
+                        <span className="text-3xl font-bold">{cropResult}</span>
+                      </div>
+                    </div>
+                    <Badge className="bg-white text-emerald-700 px-4 py-2 text-sm font-semibold hover:bg-white">
+                      Best Match
+                    </Badge>
+                  </div>
 
-          {cropSaved && (
-            <Alert className="mt-6 border-green-200 bg-green-50 animate-fade-in">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <AlertDescription className="text-green-800">
-                <strong>Success!</strong> {savedCropResult} has been added to your crop collection.
-              </AlertDescription>
-            </Alert>
+                  {/* Save Button */}
+                  <div className="mt-5 flex justify-center">
+                    {!cropSaved ? (
+                      <Button
+                        onClick={handleAddCropToDatabase}
+                        disabled={isSaving}
+                        className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all"
+                      >
+                        {isSaving ? (
+                          <span className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-600 border-t-transparent"></div>
+                            Adding to Collection...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <Plus className="h-5 w-5" />
+                            Save to My Crops
+                          </span>
+                        )}
+                      </Button>
+                    ) : (
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="flex items-center gap-2 bg-white/20 backdrop-blur px-5 py-3 rounded-xl"
+                      >
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">Saved to Your Collection!</span>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              ) : (
+                /* Error Result */
+                <motion.div 
+                  className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 rounded-2xl p-6"
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-100 rounded-xl">
+                      <AlertCircle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-red-800">Unable to Generate Recommendation</h3>
+                      <p className="text-red-600 mt-1">{errorMessage || "Please check your inputs and try again."}</p>
+                      <Button
+                        onClick={handleCropSubmit}
+                        variant="outline"
+                        className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try Again
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </AnimatePresence>
+
+        {/* Saved Confirmation */}
+        <AnimatePresence>
+          {cropSaved && !showRecommendation && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-4"
+            >
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-emerald-800">Crop Added Successfully!</p>
+                <p className="text-sm text-emerald-600">{savedCropResult} has been saved to your collection.</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   )
 }

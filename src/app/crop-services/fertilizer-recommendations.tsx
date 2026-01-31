@@ -1,24 +1,25 @@
 "use client"
 import { useState } from "react"
 import type React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   Beaker,
   Thermometer,
   BarChart3,
   CheckCircle,
-  TrendingUp,
   Info,
   RefreshCw,
   AlertCircle,
   Sprout,
+  Sparkles,
+  FlaskConical,
+  Droplets,
+  Zap,
 } from "lucide-react"
 import { useToast } from "@/app/hooks/use-toast"
 
@@ -34,16 +35,42 @@ type FertilizerFormData = {
 }
 
 const fertilizerInputRanges = {
-  Temparature: { min: 0, max: 55, unit: "°C", suggestion: "15-35°C for most crops" },
-  Humidity: { min: 10, max: 100, unit: "%", suggestion: "40-80% optimal range" },
-  Moisture: { min: 10, max: 100, unit: "%", suggestion: "20-80% soil moisture" },
-  Nitrogen: { min: 0, max: 300, unit: "kg/ha", suggestion: "50-200 kg/ha typical" },
-  Phosphorous: { min: 0, max: 150, unit: "kg/ha", suggestion: "20-80 kg/ha typical" },
-  Potassium: { min: 0, max: 200, unit: "kg/ha", suggestion: "30-120 kg/ha typical" },
+  Temparature: { min: 0, max: 55, unit: "°C", suggestion: "15-35°C for most crops", icon: "🌡️" },
+  Humidity: { min: 10, max: 100, unit: "%", suggestion: "40-80% optimal range", icon: "💧" },
+  Moisture: { min: 10, max: 100, unit: "%", suggestion: "20-80% soil moisture", icon: "💦" },
+  Nitrogen: { min: 0, max: 300, unit: "kg/ha", suggestion: "50-200 kg/ha typical", icon: "🧪" },
+  Phosphorous: { min: 0, max: 150, unit: "kg/ha", suggestion: "20-80 kg/ha typical", icon: "🔬" },
+  Potassium: { min: 0, max: 200, unit: "kg/ha", suggestion: "30-120 kg/ha typical", icon: "⚡" },
 }
 
 const soilTypes = ["Sandy", "Loamy", "Black", "Red", "Clayey"]
 const cropTypes = ["Wheat", "Barley", "Maize", "Rice", "Cotton", "Sugarcane", "Millets", "Oil seeds", "Pulses"]
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" }
+  }
+}
 
 export default function FertilizerRecommendation() {
   const {error } = useToast()
@@ -208,79 +235,107 @@ export default function FertilizerRecommendation() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto relative">
-      <Card className="shadow-xl border-0 bg-white">
-        <CardHeader className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-3 text-xl sm:text-2xl">
-            <Beaker className="h-6 w-6 sm:h-7 sm:w-7" />
-            Fertilizer Recommendation
-          </CardTitle>
-          <CardDescription className="text-emerald-100 text-sm sm:text-base">
-            Get personalized fertilizer recommendations based on your soil and crop conditions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Environmental Conditions */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <Thermometer className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
-                Environmental Conditions
-              </h3>
+    <motion.div 
+      className="w-full"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div variants={itemVariants} className="space-y-6">
+        {/* Input Groups */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Environmental Conditions Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl shadow-lg">
+                <Thermometer className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Environment</h3>
+                <p className="text-xs text-gray-500">Weather & moisture</p>
+              </div>
+            </div>
+            <div className="space-y-5">
               {(["Temparature", "Humidity", "Moisture"] as const).map((field) => (
                 <div key={field} className="space-y-2">
-                  <Label htmlFor={field.toLowerCase()} className="text-sm font-semibold text-gray-700">
-                    {field === "Temparature" ? "Temperature" : field} ({fertilizerInputRanges[field].unit}) *
+                  <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <span>{fertilizerInputRanges[field].icon}</span>
+                    {field === "Temparature" ? "Temperature" : field}
+                    <span className="text-gray-400 font-normal">({fertilizerInputRanges[field].unit})</span>
                   </Label>
-                  <Input
-                    id={field.toLowerCase()}
-                    type="number"
-                    name={field}
-                    value={fertilizerData[field]}
-                    onChange={handleFertilizerChange}
-                    placeholder={`Enter ${field === "Temparature" ? "temperature" : field.toLowerCase()}`}
-                    className={`w-full h-12 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg transition-colors ${
-                      validationErrors[field] ? "border-red-500" : ""
-                    }`}
-                    min={fertilizerInputRanges[field].min}
-                    max={fertilizerInputRanges[field].max}
-                    step="1"
-                    required
-                  />
-                  {validationErrors[field] && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
-                  )}
-                  <div className="flex items-start gap-2 text-xs text-gray-500">
-                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                    <span>{fertilizerInputRanges[field].suggestion}</span>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      name={field}
+                      value={fertilizerData[field]}
+                      onChange={handleFertilizerChange}
+                      placeholder={`Enter ${field === "Temparature" ? "temperature" : field.toLowerCase()}`}
+                      className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-orange-500/20 ${
+                        validationErrors[field] 
+                          ? "border-red-400 focus:border-red-500" 
+                          : "border-orange-200 focus:border-orange-500"
+                      }`}
+                      min={fertilizerInputRanges[field].min}
+                      max={fertilizerInputRanges[field].max}
+                      step="1"
+                    />
+                    {validationErrors[field] && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-red-500 text-xs mt-1.5 flex items-center gap-1"
+                      >
+                        <AlertCircle className="h-3 w-3" />
+                        {validationErrors[field]}
+                      </motion.p>
+                    )}
                   </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Info className="h-3 w-3" />
+                    {fertilizerInputRanges[field].suggestion}
+                  </p>
                 </div>
               ))}
             </div>
+          </motion.div>
 
-            {/* Soil & Crop Details */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                Soil & Crop Details
-              </h3>
-
-              <div className="space-y-2 pb-4">
-                <Label htmlFor="soil-type-fertilizer" className="text-sm font-semibold text-gray-700">
-                  Soil Type *
+          {/* Soil & Crop Details Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                <Sprout className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Soil & Crop</h3>
+                <p className="text-xs text-gray-500">Type selection</p>
+              </div>
+            </div>
+            <div className="space-y-5">
+              {/* Soil Type */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  🌍 Soil Type
                 </Label>
                 <Select value={fertilizerData.SoilType} onValueChange={handleSoilTypeChange}>
-                  <SelectTrigger className={`w-full h-12 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg transition-colors bg-white ${
-                    validationErrors.SoilType ? "border-red-500" : ""
+                  <SelectTrigger className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-green-500/20 ${
+                    validationErrors.SoilType 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-green-200 focus:border-green-500"
                   }`}>
                     <SelectValue placeholder="Select soil type" />
                   </SelectTrigger>
-                  <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg max-h-60 overflow-y-auto rounded-lg">
+                  <SelectContent className="bg-white/95 backdrop-blur-xl border border-green-100 shadow-xl rounded-xl">
                     {soilTypes.map((soil) => (
                       <SelectItem
                         key={soil}
                         value={soil}
-                        className="hover:bg-emerald-50 focus:bg-emerald-50 cursor-pointer px-4 py-3 text-sm font-medium transition-colors"
+                        className="hover:bg-green-50 focus:bg-green-50 cursor-pointer px-4 py-3 rounded-lg transition-colors"
                       >
                         {soil}
                       </SelectItem>
@@ -288,26 +343,31 @@ export default function FertilizerRecommendation() {
                   </SelectContent>
                 </Select>
                 {validationErrors.SoilType && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.SoilType}</p>
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />{validationErrors.SoilType}
+                  </motion.p>
                 )}
               </div>
 
-              <div className="space-y-2 pb-4">
-                <Label htmlFor="crop-type-fertilizer" className="text-sm font-semibold text-gray-700">
-                  Crop Type *
+              {/* Crop Type */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  🌾 Crop Type
                 </Label>
                 <Select value={fertilizerData.CropType} onValueChange={handleCropTypeChange}>
-                  <SelectTrigger className={`w-full h-12 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg transition-colors bg-white ${
-                    validationErrors.CropType ? "border-red-500" : ""
+                  <SelectTrigger className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-green-500/20 ${
+                    validationErrors.CropType 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-green-200 focus:border-green-500"
                   }`}>
                     <SelectValue placeholder="Select crop type" />
                   </SelectTrigger>
-                  <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg max-h-60 overflow-y-auto rounded-lg">
+                  <SelectContent className="bg-white/95 backdrop-blur-xl border border-green-100 shadow-xl rounded-xl">
                     {cropTypes.map((crop) => (
                       <SelectItem
                         key={crop}
                         value={crop}
-                        className="hover:bg-emerald-50 focus:bg-emerald-50 cursor-pointer px-4 py-3 text-sm font-medium transition-colors"
+                        className="hover:bg-green-50 focus:bg-green-50 cursor-pointer px-4 py-3 rounded-lg transition-colors"
                       >
                         {crop}
                       </SelectItem>
@@ -315,109 +375,199 @@ export default function FertilizerRecommendation() {
                   </SelectContent>
                 </Select>
                 {validationErrors.CropType && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.CropType}</p>
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />{validationErrors.CropType}
+                  </motion.p>
                 )}
               </div>
-            </div>
 
-            {/* Nutrient Levels */}
-            <div className="space-y-4 sm:space-y-5">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg border-b border-gray-200 pb-2">
-                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-                Nutrient Levels
-              </h3>
+              {/* Info Card */}
+              <div className="bg-green-100/50 rounded-xl p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <Droplets className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">Tip</p>
+                    <p className="text-xs text-green-700 mt-1">Select the most accurate soil and crop type for better fertilizer recommendations.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Nutrient Levels Card */}
+          <motion.div 
+            variants={cardVariants}
+            className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Nutrients</h3>
+                <p className="text-xs text-gray-500">NPK levels</p>
+              </div>
+            </div>
+            <div className="space-y-5">
               {(["Nitrogen", "Phosphorous", "Potassium"] as const).map((field) => (
                 <div key={field} className="space-y-2">
-                  <Label htmlFor={field.toLowerCase() + "-fertilizer"} className="text-sm font-semibold text-gray-700">
-                    {field} ({fertilizerInputRanges[field].unit}) *
+                  <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <span>{fertilizerInputRanges[field].icon}</span>
+                    {field}
+                    <span className="text-gray-400 font-normal">({fertilizerInputRanges[field].unit})</span>
                   </Label>
                   <Input
-                    id={field.toLowerCase() + "-fertilizer"}
                     type="number"
                     name={field}
                     value={fertilizerData[field]}
                     onChange={handleFertilizerChange}
                     placeholder={`Enter ${field.toLowerCase()} level`}
-                    className={`w-full h-12 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg transition-colors ${
-                      validationErrors[field] ? "border-red-500" : ""
+                    className={`w-full h-12 bg-white/80 backdrop-blur border-2 rounded-xl transition-all focus:ring-2 focus:ring-violet-500/20 ${
+                      validationErrors[field] 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-violet-200 focus:border-violet-500"
                     }`}
                     min={fertilizerInputRanges[field].min}
                     max={fertilizerInputRanges[field].max}
-                    required
                   />
                   {validationErrors[field] && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors[field]}</p>
+                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />{validationErrors[field]}
+                    </motion.p>
                   )}
-                  <div className="flex items-start gap-2 text-xs text-gray-500">
-                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                    <span>{fertilizerInputRanges[field].suggestion}</span>
-                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Info className="h-3 w-3" />{fertilizerInputRanges[field].suggestion}
+                  </p>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
+        </div>
 
-          <Separator className="my-6 sm:my-8" />
-
+        {/* Service Wake-up Message */}
+        <AnimatePresence>
           {isLoading && showRetryMessage && (
-            <Alert className="mb-6 border-yellow-200 bg-yellow-50">
-              <RefreshCw className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">
-                <strong>Service is starting up...</strong> Render free tier services may take 30-60 seconds to wake up.
-                Please wait or try again if it takes too long.
-                {retryCount > 0 && ` (Attempt ${retryCount + 1})`}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex justify-center mb-6">
-            <Button
-              onClick={handleFertilizerSubmit}
-              disabled={isLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-2 sm:py-3 text-base sm:text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-              size="lg"
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3"
             >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></div>
-                  {showRetryMessage ? "Waking up service..." : "Analyzing..."}
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Get Fertilizer Recommendation
-                </>
-              )}
-            </Button>
-          </div>
-
-          {showRecommendation && fertilizerResult && (
-            <div className="mt-6 space-y-4 animate-fade-in">
-              <Alert className="border-emerald-200 bg-emerald-50 p-4 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-                <AlertDescription className="text-emerald-800 text-sm sm:text-base">
-                  <strong className="text-base sm:text-lg">Recommended Fertilizer:</strong>
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 sm:ml-3 bg-emerald-100 text-emerald-800 px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold"
-                  >
-                    {fertilizerResult}
-                  </Badge>
-                </AlertDescription>
-              </Alert>
-
-              {errorMessage && (
-                <Alert className="border-red-200 bg-red-50 p-4 rounded-lg">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  <AlertDescription className="text-red-800 text-sm sm:text-base">
-                    <strong>Error:</strong> {errorMessage}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />
+              </div>
+              <div>
+                <p className="font-semibold text-amber-800">Service is waking up...</p>
+                <p className="text-sm text-amber-700">Free tier services may take 30-60 seconds. Please wait.</p>
+                {retryCount > 0 && <p className="text-xs text-amber-600 mt-1">Attempt {retryCount + 1}</p>}
+              </div>
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </AnimatePresence>
+
+        {/* Submit Button */}
+        <motion.div variants={itemVariants} className="flex justify-center pt-2">
+          <Button
+            onClick={handleFertilizerSubmit}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 min-w-[280px] group"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                {showRetryMessage ? "Connecting to AI..." : "Analyzing Soil Data..."}
+              </span>
+            ) : (
+              <span className="flex items-center gap-3">
+                <FlaskConical className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                Get AI Fertilizer Recommendation
+                <Zap className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              </span>
+            )}
+          </Button>
+        </motion.div>
+
+        {/* Results Section */}
+        <AnimatePresence mode="wait">
+          {showRecommendation && fertilizerResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-4"
+            >
+              {/* Success Result */}
+              {!fertilizerResult.includes("Error") && fertilizerResult !== "Unable to generate recommendation" && fertilizerResult !== "Something went wrong." ? (
+                <motion.div 
+                  className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl"
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur">
+                      <CheckCircle className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <p className="text-violet-100 text-sm font-medium">AI Recommendation</p>
+                      <h3 className="text-2xl font-bold">Optimal Fertilizer Found!</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur rounded-xl p-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-violet-100 text-sm mb-1">Recommended Fertilizer</p>
+                      <div className="flex items-center gap-3">
+                        <Beaker className="h-7 w-7" />
+                        <span className="text-2xl font-bold">{fertilizerResult}</span>
+                      </div>
+                    </div>
+                    <Badge className="bg-white text-violet-700 px-4 py-2 text-sm font-semibold hover:bg-white">
+                      Best Match
+                    </Badge>
+                  </div>
+
+                  {/* Usage Tips */}
+                  <div className="mt-5 bg-white/10 backdrop-blur rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <Sparkles className="h-5 w-5 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Application Tip</p>
+                        <p className="text-sm text-violet-100 mt-1">Apply fertilizer during early morning or late evening for best absorption. Always follow recommended dosage guidelines.</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                /* Error Result */
+                <motion.div 
+                  className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 rounded-2xl p-6"
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-100 rounded-xl">
+                      <AlertCircle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-red-800">Unable to Generate Recommendation</h3>
+                      <p className="text-red-600 mt-1">{errorMessage || "Please check your inputs and try again."}</p>
+                      <Button
+                        onClick={handleFertilizerSubmit}
+                        variant="outline"
+                        className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try Again
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   )
 }
