@@ -62,6 +62,7 @@ export default function MarketPricesPage() {
   const router = useRouter()
   const [prices, setPrices] = useState<MarketPrice[]>([])
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [filters, setFilters] = useState<FiltersData>({ commodities: [], states: [], markets: [] })
@@ -73,7 +74,30 @@ export default function MarketPricesPage() {
   const [selectedMarket, setSelectedMarket] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const fetchPrices = useCallback(async () => {
+  // Auto-sync if data is empty or stale (older than 12 hours)
+  const triggerSyncIfNeeded = useCallback(async (currentLastSync: string | null, dataCount: number) => {
+    // Check if sync is needed
+    const needsSync = dataCount === 0 || !currentLastSync || 
+      (new Date().getTime() - new Date(currentLastSync).getTime()) > 12 * 60 * 60 * 1000
+
+    if (needsSync && !syncing) {
+      console.log("Auto-syncing market prices...")
+      setSyncing(true)
+      try {
+        const syncResponse = await fetch("/api/market/sync")
+        const syncData = await syncResponse.json()
+        console.log("Sync result:", syncData)
+        return true // Sync was triggered
+      } catch (err) {
+        console.error("Auto-sync failed:", err)
+      } finally {
+        setSyncing(false)
+      }
+    }
+    return false
+  }, [syncing])
+
+  const fetchPrices = useCallback(async (isInitialLoad = false) => {
     try {
       setLoading(true)
       setError(null)
@@ -93,6 +117,15 @@ export default function MarketPricesPage() {
         setFilters(data.filters)
         setPagination(data.pagination)
         setLastSync(data.metadata.lastSync)
+
+        // On initial load, check if we need to sync
+        if (isInitialLoad) {
+          const didSync = await triggerSyncIfNeeded(data.metadata.lastSync, data.data.length)
+          if (didSync) {
+            // Re-fetch after sync
+            setTimeout(() => fetchPrices(false), 1000)
+          }
+        }
       } else {
         setError(data.error || "Failed to fetch prices")
         setPrices([])
@@ -104,7 +137,7 @@ export default function MarketPricesPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedCommodity, selectedState, selectedMarket, pagination.page])
+  }, [selectedCommodity, selectedState, selectedMarket, pagination.page, triggerSyncIfNeeded])
 
   useEffect(() => {
     // Auth check
@@ -116,7 +149,7 @@ export default function MarketPricesPage() {
       return
     }
 
-    fetchPrices()
+    fetchPrices(true) // Initial load with sync check
   }, [router, fetchPrices])
 
   const formatPrice = (price: number) => {
@@ -218,12 +251,12 @@ export default function MarketPricesPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchPrices}
-              disabled={loading}
+              onClick={() => fetchPrices(false)}
+              disabled={loading || syncing}
               className="text-amber-600 border-amber-300 hover:bg-amber-50"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Refresh
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading || syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing..." : "Refresh"}
             </Button>
           </div>
         )}
@@ -343,13 +376,15 @@ export default function MarketPricesPage() {
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="h-8 w-8 text-amber-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Price Data Available</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {syncing ? "Syncing Price Data..." : "No Price Data Available"}
+              </h3>
               <p className="text-gray-600 max-w-md mx-auto mb-6">
-                Market prices are being updated. Please check back in a few hours.
+                {syncing ? "Please wait while we fetch the latest prices." : "Market prices are being updated. Please check back in a few hours."}
               </p>
-              <Button onClick={fetchPrices} className="bg-amber-600 hover:bg-amber-700">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
+              <Button onClick={() => fetchPrices(true)} disabled={syncing} className="bg-amber-600 hover:bg-amber-700">
+                <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Syncing..." : "Try Again"}
               </Button>
             </CardContent>
           </Card>
