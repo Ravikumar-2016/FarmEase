@@ -19,3 +19,12 @@ h6 {
   font-family: "Sixtyfour Convergence", sans-serif;
 }
 
+/* Custom animation for notification progress bar */
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

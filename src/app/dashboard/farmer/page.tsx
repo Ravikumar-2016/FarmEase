@@ -428,18 +428,18 @@ export default function FarmerDashboard() {
               </CardContent>
             </Card>
 
-            {/* Machinery Rental */}
+            {/* Machinery Rental - Community Sharing */}
             <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 shadow-lg bg-gradient-to-br from-cyan-50 to-cyan-100">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="p-3 bg-cyan-500 rounded-xl shadow-lg group-hover:bg-cyan-600 transition-colors">
                     <Tractor className="h-8 w-8 text-white" />
                   </div>
-                  <Badge className="bg-cyan-100 text-cyan-800 border-cyan-300">Future Plan</Badge>
+                  <Badge className="bg-amber-100 text-amber-800 border-amber-300">Beta</Badge>
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Machinery Rental</CardTitle>
+                <CardTitle className="text-xl font-bold text-gray-900">Machine Rental</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Easily rent and share farm equipment with other local farmers.
+                  Browse and request farm equipment from local providers in your area.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
@@ -447,22 +447,22 @@ export default function FarmerDashboard() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Tractor className="h-4 w-4 text-cyan-600" />
-                      <span>Equipment Listings</span>
+                      <span>Tractors, Harvesters & More</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <MapPin className="h-4 w-4 text-cyan-600" />
+                      <span>Local Providers</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Handshake className="h-4 w-4 text-cyan-600" />
-                      <span>Rental Marketplace</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <Users className="h-4 w-4 text-cyan-600" />
-                      <span>Local Providers</span>
+                      <span>Direct Contact & Pay</span>
                     </div>
                   </div>
                   <Button
                     className="w-full bg-cyan-600 hover:bg-cyan-700 text-white shadow-md group-hover:shadow-lg transition-all"
-                    disabled
+                    onClick={() => router.push("/machinery-rental")}
                   >
-                    Future Feature
+                    Browse Machines
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -477,7 +477,7 @@ export default function FarmerDashboard() {
     <p className="text-gray-600">Access your most used features quickly</p>
   </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
     <Button
       variant="outline"
       className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 transition-all"
@@ -512,6 +512,15 @@ export default function FarmerDashboard() {
     >
       <Shield className="h-6 w-6 text-emerald-600" />
       <span className="text-sm font-medium">Detect Disease</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
+      onClick={() => router.push("/machinery-rental")}
+    >
+      <Tractor className="h-6 w-6 text-cyan-600" />
+      <span className="text-sm font-medium">Rent Machines</span>
     </Button>
   </div>
 </div>
