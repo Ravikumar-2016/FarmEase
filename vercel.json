@@ -5,5 +5,16 @@
       "path": "/api/market/sync",
       "schedule": "0 0 * * *"
     }
+  ],
+  "headers": [
+    {
+      "source": "/api/market/sync",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer {{CRON_SECRET}}"
+        }
+      ]
+    }
   ]
 }

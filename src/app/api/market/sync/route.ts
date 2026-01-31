@@ -125,14 +125,26 @@ function addPriceVariation(basePrice: number, variationPercent: number = 5): num
 
 export async function GET(request: Request) {
   try {
-    // Verify this is a cron request (in production, add proper auth)
+    // SECURITY: Verify this is an authorized request (cron job or admin)
     const authHeader = request.headers.get("authorization")
     const cronSecret = process.env.CRON_SECRET
     
-    // In development, allow without auth. In production, require CRON_SECRET
-    if (process.env.NODE_ENV === "production" && cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      console.log("⚠️ Unauthorized sync attempt")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // Always require CRON_SECRET for sync endpoint
+    // This prevents unauthorized users from triggering expensive sync operations
+    if (!cronSecret) {
+      console.error("❌ CRON_SECRET environment variable is not configured")
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      )
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      console.log("⚠️ Unauthorized sync attempt blocked - Invalid or missing authorization header")
+      return NextResponse.json(
+        { error: "Unauthorized - This endpoint requires authentication" },
+        { status: 401 }
+      )
     }
 
     console.log("=== MARKET PRICES SYNC STARTED ===")

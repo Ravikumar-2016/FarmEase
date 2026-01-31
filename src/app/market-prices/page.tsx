@@ -1,8 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState, useCallback, useMemo } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -22,13 +22,14 @@ import {
   RefreshCw,
   MapPin,
   Calendar,
-  IndianRupee,
   ShieldCheck,
   AlertTriangle,
-  Filter,
   Package,
-  Building2,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  X,
 } from "lucide-react"
 
 interface MarketPrice {
@@ -62,7 +63,6 @@ export default function MarketPricesPage() {
   const router = useRouter()
   const [prices, setPrices] = useState<MarketPrice[]>([])
   const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [filters, setFilters] = useState<FiltersData>({ commodities: [], states: [], markets: [] })
@@ -73,31 +73,10 @@ export default function MarketPricesPage() {
   const [selectedState, setSelectedState] = useState<string>("")
   const [selectedMarket, setSelectedMarket] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
 
-  // Auto-sync if data is empty or stale (older than 12 hours)
-  const triggerSyncIfNeeded = useCallback(async (currentLastSync: string | null, dataCount: number) => {
-    // Check if sync is needed
-    const needsSync = dataCount === 0 || !currentLastSync || 
-      (new Date().getTime() - new Date(currentLastSync).getTime()) > 12 * 60 * 60 * 1000
-
-    if (needsSync && !syncing) {
-      console.log("Auto-syncing market prices...")
-      setSyncing(true)
-      try {
-        const syncResponse = await fetch("/api/market/sync")
-        const syncData = await syncResponse.json()
-        console.log("Sync result:", syncData)
-        return true // Sync was triggered
-      } catch (err) {
-        console.error("Auto-sync failed:", err)
-      } finally {
-        setSyncing(false)
-      }
-    }
-    return false
-  }, [syncing])
-
-  const fetchPrices = useCallback(async (isInitialLoad = false) => {
+  const fetchPrices = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -117,15 +96,6 @@ export default function MarketPricesPage() {
         setFilters(data.filters)
         setPagination(data.pagination)
         setLastSync(data.metadata.lastSync)
-
-        // On initial load, check if we need to sync
-        if (isInitialLoad) {
-          const didSync = await triggerSyncIfNeeded(data.metadata.lastSync, data.data.length)
-          if (didSync) {
-            // Re-fetch after sync
-            setTimeout(() => fetchPrices(false), 1000)
-          }
-        }
       } else {
         setError(data.error || "Failed to fetch prices")
         setPrices([])
@@ -137,7 +107,7 @@ export default function MarketPricesPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedCommodity, selectedState, selectedMarket, pagination.page, triggerSyncIfNeeded])
+  }, [selectedCommodity, selectedState, selectedMarket, pagination.page])
 
   useEffect(() => {
     // Auth check
@@ -149,13 +119,11 @@ export default function MarketPricesPage() {
       return
     }
 
-    fetchPrices(true) // Initial load with sync check
+    fetchPrices()
   }, [router, fetchPrices])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price)
   }
@@ -190,302 +158,597 @@ export default function MarketPricesPage() {
   }
 
   // Filter prices by search term (client-side for instant feedback)
-  const filteredPrices = prices.filter(price => {
-    if (!searchTerm) return true
-    const search = searchTerm.toLowerCase()
-    return (
-      price.commodity.toLowerCase().includes(search) ||
-      price.market.toLowerCase().includes(search) ||
-      price.state.toLowerCase().includes(search)
-    )
-  })
+  const filteredPrices = useMemo(() => {
+    return prices.filter(price => {
+      if (!searchTerm) return true
+      const search = searchTerm.toLowerCase()
+      return (
+        price.commodity.toLowerCase().includes(search) ||
+        price.market.toLowerCase().includes(search) ||
+        price.state.toLowerCase().includes(search)
+      )
+    })
+  }, [prices, searchTerm])
+
+  // Calculate summary statistics
+  const summaryStats = useMemo(() => {
+    if (filteredPrices.length === 0) return null
+
+    const sortedByPrice = [...filteredPrices].sort((a, b) => b.modalPrice - a.modalPrice)
+    const topPriced = sortedByPrice.slice(0, 3)
+
+    // Group by commodity and count
+    const commodityCounts = filteredPrices.reduce((acc, price) => {
+      acc[price.commodity] = (acc[price.commodity] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+
+    const mostTraded = Object.entries(commodityCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }))
+
+    // Unique states count
+    const uniqueStates = new Set(filteredPrices.map(p => p.state)).size
+    const uniqueMarkets = new Set(filteredPrices.map(p => p.market)).size
+
+    return {
+      topPriced,
+      mostTraded,
+      uniqueStates,
+      uniqueMarkets,
+      totalPrices: filteredPrices.length,
+    }
+  }, [filteredPrices])
+
+  const hasActiveFilters = selectedCommodity || selectedState || selectedMarket || searchTerm
+  const activeFilterCount = [selectedCommodity, selectedState, selectedMarket, searchTerm].filter(Boolean).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.back()}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <div className="h-6 w-px bg-gray-300" />
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900">Market Prices</h1>
-                  <p className="text-xs text-gray-500">Mandi rates across India</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Source Badge */}
-            <Badge className="bg-green-100 text-green-800 border-green-300 px-3 py-1 flex items-center gap-2">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between py-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="text-white/90 hover:text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 flex items-center gap-2 backdrop-blur-sm">
               <ShieldCheck className="h-4 w-4" />
-              Official Govt Data
+              <span className="text-sm font-medium">Official Govt Data</span>
             </Badge>
           </div>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Last Updated Info */}
-        {lastSync && (
-          <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4" />
-              <span>Last updated: {formatDate(lastSync)}</span>
-              <Badge variant="outline" className="ml-2 text-xs">
-                {getTimeSince(lastSync)}
-              </Badge>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchPrices(false)}
-              disabled={loading || syncing}
-              className="text-amber-600 border-amber-300 hover:bg-amber-50"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading || syncing ? "animate-spin" : ""}`} />
-              {syncing ? "Syncing..." : "Refresh"}
-            </Button>
-          </div>
-        )}
-
-        {/* Filters Section */}
-        <Card className="mb-6 border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Filter className="h-5 w-5 text-amber-600" />
-              Filter Prices
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+          {/* Hero Content */}
+          <div className="pb-8 pt-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                <TrendingUp className="h-7 w-7" />
               </div>
-
-              {/* Commodity Filter */}
-              <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-                <SelectTrigger>
-                  <Package className="h-4 w-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="All Commodities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Commodities</SelectItem>
-                  {filters.commodities.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* State Filter */}
-              <Select value={selectedState} onValueChange={setSelectedState}>
-                <SelectTrigger>
-                  <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="All States" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All States</SelectItem>
-                  {filters.states.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Market Filter */}
-              <Select value={selectedMarket} onValueChange={setSelectedMarket}>
-                <SelectTrigger>
-                  <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="All Markets" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Markets</SelectItem>
-                  {filters.markets.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold">Market Prices</h1>
+                <p className="text-emerald-100 text-sm sm:text-base">Live Mandi rates from across India</p>
+              </div>
             </div>
 
-            {/* Active Filters */}
-            {(selectedCommodity || selectedState || selectedMarket || searchTerm) && (
-              <div className="mt-4 flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-gray-500">Active filters:</span>
-                {selectedCommodity && selectedCommodity !== "all" && (
-                  <Badge variant="secondary">{selectedCommodity}</Badge>
-                )}
-                {selectedState && selectedState !== "all" && (
-                  <Badge variant="secondary">{selectedState}</Badge>
-                )}
-                {selectedMarket && selectedMarket !== "all" && (
-                  <Badge variant="secondary">{selectedMarket}</Badge>
-                )}
-                {searchTerm && (
-                  <Badge variant="secondary">Search: {searchTerm}</Badge>
-                )}
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
-                  Clear all
+            {/* Last Updated Banner */}
+            {lastSync && (
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2 backdrop-blur-sm">
+                  <Calendar className="h-4 w-4 text-emerald-200" />
+                  <span className="text-emerald-50">Last updated: {formatDate(lastSync)}</span>
+                  <Badge className="bg-emerald-400/30 text-white border-0 text-xs ml-1">
+                    {getTimeSince(lastSync)}
+                  </Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchPrices}
+                  disabled={loading}
+                  className="text-white hover:bg-white/10 border border-white/20"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                  Refresh
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Search & Filters Bar */}
+      <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Main Search Row */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Search commodities, markets, or states..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-11 text-base bg-gray-50 border-gray-200 focus:bg-white"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Toggle Button */}
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`h-11 px-4 gap-2 ${showFilters ? "bg-emerald-50 border-emerald-300 text-emerald-700" : ""}`}
+            >
+              <Package className="h-4 w-4" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <Badge className="bg-emerald-600 text-white h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
+              {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {/* View Toggle */}
+            <div className="hidden sm:flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("cards")}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "cards" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Cards
+              </button>
+              <button
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Table
+              </button>
+            </div>
+          </div>
+
+          {/* Expandable Filters */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Commodity Filter */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Commodity</label>
+                  <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="All Commodities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Commodities</SelectItem>
+                      {filters.commodities.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* State Filter */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">State</label>
+                  <Select value={selectedState} onValueChange={setSelectedState}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="All States" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All States</SelectItem>
+                      {filters.states.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Market Filter */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Market</label>
+                  <Select value={selectedMarket} onValueChange={setSelectedMarket}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="All Markets" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Markets</SelectItem>
+                      {filters.markets.map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Active Filters Pills */}
+              {hasActiveFilters && (
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  {selectedCommodity && selectedCommodity !== "all" && (
+                    <Badge variant="secondary" className="gap-1 pr-1">
+                      {selectedCommodity}
+                      <button onClick={() => setSelectedCommodity("")} className="ml-1 hover:text-red-600">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedState && selectedState !== "all" && (
+                    <Badge variant="secondary" className="gap-1 pr-1">
+                      {selectedState}
+                      <button onClick={() => setSelectedState("")} className="ml-1 hover:text-red-600">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedMarket && selectedMarket !== "all" && (
+                    <Badge variant="secondary" className="gap-1 pr-1">
+                      {selectedMarket}
+                      <button onClick={() => setSelectedMarket("")} className="ml-1 hover:text-red-600">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  <button
+                    onClick={clearFilters}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Summary Stats Cards */}
+        {!loading && summaryStats && (
+          <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+              <div className="text-2xl font-bold text-gray-900">{summaryStats.totalPrices}</div>
+              <div className="text-sm text-gray-500">Total Prices</div>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+              <div className="text-2xl font-bold text-emerald-600">{summaryStats.uniqueStates}</div>
+              <div className="text-sm text-gray-500">States</div>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+              <div className="text-2xl font-bold text-blue-600">{summaryStats.uniqueMarkets}</div>
+              <div className="text-sm text-gray-500">Markets</div>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+              <div className="text-2xl font-bold text-amber-600">{filters.commodities.length}</div>
+              <div className="text-sm text-gray-500">Commodities</div>
+            </div>
+          </div>
+        )}
+
+        {/* Top Priced & Most Traded Section */}
+        {!loading && summaryStats && !hasActiveFilters && (
+          <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Priced Commodities */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-amber-600" />
+                  Top Priced Today
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {summaryStats.topPriced.map((price, idx) => (
+                  <div key={price._id} className="px-5 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-medium text-gray-900">{price.commodity}</div>
+                        <div className="text-xs text-gray-500">{price.market}, {price.state}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-amber-700">₹{formatPrice(price.modalPrice)}</div>
+                      <div className="text-xs text-gray-400">/quintal</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Most Traded Commodities */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-emerald-600" />
+                  Most Listed Commodities
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {summaryStats.mostTraded.map((item, idx) => (
+                  <div key={item.name} className="px-5 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <span className="font-medium text-gray-900">{item.name}</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">
+                      {item.count} markets
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <Loader2 className="h-12 w-12 text-amber-600 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600">Loading market prices...</p>
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-emerald-100 rounded-full"></div>
+                <div className="w-16 h-16 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+              </div>
+              <p className="text-gray-600 mt-4 font-medium">Loading market prices...</p>
+              <p className="text-gray-400 text-sm mt-1">Fetching latest data from government sources</p>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <Alert className="bg-amber-50 border-amber-200 mb-6">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">
+          <Alert className="bg-red-50 border-red-200 mb-6">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <AlertDescription className="text-red-800 ml-2">
               {error}
+              <Button
+                variant="link"
+                onClick={fetchPrices}
+                className="text-red-700 underline ml-2 p-0 h-auto"
+              >
+                Try again
+              </Button>
             </AlertDescription>
           </Alert>
         )}
 
         {/* No Data State */}
         {!loading && !error && filteredPrices.length === 0 && (
-          <Card className="border-0 shadow-lg">
-            <CardContent className="text-center py-16">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {syncing ? "Syncing Price Data..." : "No Price Data Available"}
-              </h3>
-              <p className="text-gray-600 max-w-md mx-auto mb-6">
-                {syncing ? "Please wait while we fetch the latest prices." : "Market prices are being updated. Please check back in a few hours."}
-              </p>
-              <Button onClick={() => fetchPrices(true)} disabled={syncing} className="bg-amber-600 hover:bg-amber-700">
-                <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-                {syncing ? "Syncing..." : "Try Again"}
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="h-10 w-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No prices found</h3>
+            <p className="text-gray-500 max-w-md mx-auto mb-6">
+              {hasActiveFilters
+                ? "Try adjusting your filters or search term to see more results."
+                : "Market prices are being updated. Please check back later."}
+            </p>
+            {hasActiveFilters && (
+              <Button onClick={clearFilters} variant="outline" className="gap-2">
+                <X className="h-4 w-4" />
+                Clear all filters
               </Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         )}
 
-        {/* Prices Grid */}
+        {/* Results Count */}
         {!loading && filteredPrices.length > 0 && (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Showing {filteredPrices.length} of {pagination.total} prices
-              </p>
-            </div>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{filteredPrices.length}</span> of{" "}
+              <span className="font-semibold">{pagination.total}</span> prices
+            </p>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPrices.map((price) => (
-                <Card key={price._id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    {/* Commodity Header */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-gray-900">{price.commodity}</h3>
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          <span>{price.market}, {price.state}</span>
+        {/* Prices Grid - Card View */}
+        {!loading && filteredPrices.length > 0 && viewMode === "cards" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPrices.map((price) => (
+              <Card key={price._id} className="border-0 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group">
+                <CardContent className="p-0">
+                  {/* Card Header */}
+                  <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{price.commodity}</h3>
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-0.5">
+                          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate">{price.market}, {price.state}</span>
                         </div>
                       </div>
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs flex-shrink-0 ml-2">
                         {getTimeSince(price.lastUpdated)}
                       </Badge>
                     </div>
+                  </div>
 
-                    {/* Price Info */}
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3 mb-3">
-                      <div className="text-center mb-2">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Modal Price</p>
-                        <p className="text-2xl font-bold text-amber-700">
-                          {formatPrice(price.modalPrice)}
-                          <span className="text-sm font-normal text-gray-500">/quintal</span>
-                        </p>
+                  {/* Price Section */}
+                  <div className="p-4">
+                    {/* Modal Price - Main */}
+                    <div className="text-center mb-4">
+                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+                        Modal Price
                       </div>
-                      
-                      <div className="flex justify-between text-sm border-t border-amber-200 pt-2 mt-2">
-                        <div className="text-center">
-                          <TrendingDown className="h-3 w-3 text-green-600 inline mr-1" />
-                          <span className="text-gray-600">Min: </span>
-                          <span className="font-semibold text-green-700">{formatPrice(price.minPrice)}</span>
-                        </div>
-                        <div className="text-center">
-                          <TrendingUp className="h-3 w-3 text-red-600 inline mr-1" />
-                          <span className="text-gray-600">Max: </span>
-                          <span className="font-semibold text-red-700">{formatPrice(price.maxPrice)}</span>
-                        </div>
+                      <div className="text-3xl font-bold text-emerald-600">
+                        ₹{formatPrice(price.modalPrice)}
+                        <span className="text-sm font-normal text-gray-400 ml-1">/quintal</span>
                       </div>
                     </div>
 
-                    {/* Source Badge */}
-                    <div className="flex items-center justify-center">
-                      <Badge variant="outline" className="text-xs text-gray-500">
-                        <ShieldCheck className="h-3 w-3 mr-1 text-green-600" />
-                        Source: agmarknet.gov.in
-                      </Badge>
+                    {/* Min/Max Range */}
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-green-600 text-xs font-medium">
+                          <TrendingDown className="h-3 w-3" />
+                          Min
+                        </div>
+                        <div className="font-semibold text-gray-700">₹{formatPrice(price.minPrice)}</div>
+                      </div>
+                      <div className="h-8 w-px bg-gray-200"></div>
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-red-600 text-xs font-medium">
+                          <TrendingUp className="h-3 w-3" />
+                          Max
+                        </div>
+                        <div className="font-semibold text-gray-700">₹{formatPrice(price.maxPrice)}</div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
 
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-4">
-                <Button
-                  variant="outline"
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-gray-600">
-                  Page {pagination.page} of {pagination.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
+                  {/* Source Footer */}
+                  <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+                    <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+                      <ShieldCheck className="h-3 w-3 text-green-500" />
+                      <span>Source: agmarknet.gov.in</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
 
-        {/* Disclaimer */}
-        <Alert className="mt-8 bg-blue-50 border-blue-200">
-          <ShieldCheck className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800 text-sm">
-            <strong>Note:</strong> Prices shown are indicative and sourced from official government data (agmarknet.gov.in). 
-            Actual prices may vary. Data is updated every 12 hours.
-          </AlertDescription>
-        </Alert>
+        {/* Prices Table View */}
+        {!loading && filteredPrices.length > 0 && viewMode === "table" && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Commodity</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Market</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">State</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Min Price</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Modal Price</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Max Price</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Updated</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredPrices.map((price) => (
+                    <tr key={price._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-4">
+                        <span className="font-medium text-gray-900">{price.commodity}</span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{price.market}</td>
+                      <td className="py-3 px-4 text-gray-600">{price.state}</td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-green-600 font-medium">₹{formatPrice(price.minPrice)}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-emerald-700 font-bold">₹{formatPrice(price.modalPrice)}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-red-600 font-medium">₹{formatPrice(price.maxPrice)}</span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <Badge variant="secondary" className="text-xs">
+                          {getTimeSince(price.lastUpdated)}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page <= 1}
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+              className="gap-1"
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1 px-2">
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                const pageNum = i + 1
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setPagination(prev => ({ ...prev, page: pageNum }))}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                      pagination.page === pageNum
+                        ? "bg-emerald-600 text-white"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+              {pagination.totalPages > 5 && (
+                <>
+                  <span className="text-gray-400">...</span>
+                  <button
+                    onClick={() => setPagination(prev => ({ ...prev, page: pagination.totalPages }))}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                      pagination.page === pagination.totalPages
+                        ? "bg-emerald-600 text-white"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {pagination.totalPages}
+                  </button>
+                </>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page >= pagination.totalPages}
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+              className="gap-1"
+            >
+              Next
+            </Button>
+          </div>
+        )}
+
+        {/* Info Banner */}
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4 sm:p-5">
+          <div className="flex gap-3">
+            <div className="flex-shrink-0">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-blue-900 mb-1">About Market Prices</h4>
+              <p className="text-sm text-blue-700 leading-relaxed">
+                All prices are sourced from official government data (agmarknet.gov.in) and are updated automatically. 
+                Prices shown are indicative modal prices per quintal. Actual prices at your local mandi may vary. 
+                Data refreshes daily to ensure you have the latest market information.
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   )
