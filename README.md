@@ -12,12 +12,6 @@
   <a href="https://farm-ease-umber.vercel.app/">
     <img src="https://img.shields.io/badge/LIVE%20PLATFORM-2E7D32?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Site" />
   </a>
-  <a href="https://github.com/Ravikumar-2016/FarmEase">
-    <img src="https://img.shields.io/badge/GITHUB%20REPOSITORY-24292F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
-  </a>
-  <a href="#key-features">
-    <img src="https://img.shields.io/badge/FEATURES-FF6B35?style=for-the-badge" alt="Features" />
-  </a>
 </p>
 
 <hr>
