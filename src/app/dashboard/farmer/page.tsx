@@ -390,11 +390,11 @@ export default function FarmerDashboard() {
                   <div className="p-3 bg-emerald-500 rounded-xl shadow-lg group-hover:bg-emerald-600 transition-colors">
                     <Shield className="h-8 w-8 text-white" />
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">Coming Soon</Badge>
+                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">AI Powered</Badge>
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900">Pesticide AI</CardTitle>
                 <CardDescription className="text-gray-600">
-                  AI-powered pesticide recommendations for your crops
+                  AI-powered disease detection and pesticide recommendations
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
@@ -402,7 +402,7 @@ export default function FarmerDashboard() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Brain className="h-4 w-4 text-emerald-600" />
-                      <span>Pest Identification</span>
+                      <span>Disease Detection</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Shield className="h-4 w-4 text-emerald-600" />
@@ -410,14 +410,14 @@ export default function FarmerDashboard() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Activity className="h-4 w-4 text-emerald-600" />
-                      <span>Dosage Calculator</span>
+                      <span>Treatment Guidance</span>
                     </div>
                   </div>
                   <Button
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-md group-hover:shadow-lg transition-all"
-                    disabled
+                    onClick={() => router.push("/pesticide-ai")}
                   >
-                    Coming Soon
+                    Detect Disease
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -473,7 +473,7 @@ export default function FarmerDashboard() {
     <p className="text-gray-600">Access your most used features quickly</p>
   </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     <Button
       variant="outline"
       className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 transition-all"
@@ -499,6 +499,15 @@ export default function FarmerDashboard() {
     >
       <Users className="h-6 w-6 text-purple-600" />
       <span className="text-sm font-medium">Post Work</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 hover:border-emerald-300 transition-all"
+      onClick={() => router.push("/pesticide-ai")}
+    >
+      <Shield className="h-6 w-6 text-emerald-600" />
+      <span className="text-sm font-medium">Detect Disease</span>
     </Button>
   </div>
 </div>

@@ -7,7 +7,18 @@ declare global {
 }
 
 const uri = process.env.MONGODB_URI as string
-const options: MongoClientOptions = {}
+
+// Improved connection options for unstable networks
+const options: MongoClientOptions = {
+  maxPoolSize: 10,
+  minPoolSize: 1,
+  maxIdleTimeMS: 30000,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 30000,
+  retryWrites: true,
+  retryReads: true,
+}
 
 if (!uri) {
   throw new Error("❌ Please add your Mongo URI to .env.local as MONGODB_URI")
