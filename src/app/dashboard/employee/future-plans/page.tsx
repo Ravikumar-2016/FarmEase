@@ -43,24 +43,6 @@ export default function FuturePlansPage() {
 
   const aiFeatures = [
     {
-      icon: Camera,
-      title: "AI Disease Detection",
-      description: "Advanced crop disease identification using computer vision and machine learning algorithms",
-      timeline: "Q2 2024",
-      priority: "High",
-      status: "In Development",
-      color: "from-green-500 to-green-600",
-    },
-    {
-      icon: Bot,
-      title: "Smart Crop Recommendations",
-      description: "Enhanced AI-driven crop suggestions based on soil, weather, and market conditions",
-      timeline: "Q1 2024",
-      priority: "High",
-      status: "Testing Phase",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
       icon: BarChart3,
       title: "Market Analytics AI",
       description: "Predictive market analysis and price forecasting using machine learning",
@@ -556,7 +538,6 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
                   <li>• Financial services integration</li>
                   <li>• Training & certification programs</li>
                   <li>• Innovation hub platform</li>
-                  <li>• Advanced AI disease detection</li>
                 </ul>
               </div>
             </div>
