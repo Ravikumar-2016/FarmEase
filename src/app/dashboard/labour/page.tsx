@@ -634,13 +634,13 @@ export default function LabourDashboard() {
   </Card>
 
   {/* Community Card */}
-  <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+  <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-0 shadow-lg bg-gradient-to-br from-teal-50 to-teal-100">
     <CardHeader className="pb-4">
       <div className="flex items-center justify-between mb-2">
-        <div className="p-3 bg-purple-500 rounded-xl shadow-lg group-hover:bg-purple-600 transition-colors">
+        <div className="p-3 bg-teal-500 rounded-xl shadow-lg group-hover:bg-teal-600 transition-colors">
           <Users className="h-8 w-8 text-white" />
         </div>
-        <Badge className="bg-purple-100 text-purple-800 border-purple-300">Coming Soon</Badge>
+        <Badge className="bg-teal-100 text-teal-800 border-teal-300">Beta</Badge>
       </div>
       <CardTitle className="text-xl font-bold text-gray-900">Community</CardTitle>
       <CardDescription className="text-gray-600">
@@ -651,23 +651,23 @@ export default function LabourDashboard() {
       <div className="space-y-4">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-gray-700">
-            <Users className="h-4 w-4 text-purple-600" />
-            <span>Experience Sharing</span>
+            <Users className="h-4 w-4 text-teal-600" />
+            <span>Discussion Forums</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-700">
-            <Activity className="h-4 w-4 text-purple-600" />
-            <span>Skill Development Resources</span>
+            <Activity className="h-4 w-4 text-teal-600" />
+            <span>Share Experiences</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-700">
-            <Handshake className="h-4 w-4 text-purple-600" />
-            <span>Group Work Coordination</span>
+            <Handshake className="h-4 w-4 text-teal-600" />
+            <span>Get Expert Advice</span>
           </div>
         </div>
         <Button
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md group-hover:shadow-lg transition-all"
-          disabled
+          className="w-full bg-teal-600 hover:bg-teal-700 text-white shadow-md group-hover:shadow-lg transition-all"
+          onClick={() => router.push("/dashboard/labour/community")}
         >
-          Coming Soon
+          Open Community
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
