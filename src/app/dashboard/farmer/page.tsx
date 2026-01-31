@@ -376,9 +376,13 @@ export default function FarmerDashboard() {
                       <span>Price Trends</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-amber-200">
-                    <p className="text-xs text-amber-700 text-center font-medium">Official source: agmarknet.gov.in</p>
-                  </div>
+                  <Button
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white shadow-md group-hover:shadow-lg transition-all"
+                    onClick={() => router.push("/market-prices")}
+                  >
+                    View Prices
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
