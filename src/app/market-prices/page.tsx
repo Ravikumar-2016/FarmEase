@@ -35,6 +35,8 @@ interface MarketPrice {
   minPrice: number
   maxPrice: number
   modalPrice: number
+  unit: string
+  category: string
   date: string
   source: string
   lastUpdated: string
@@ -44,6 +46,7 @@ interface FiltersData {
   commodities: string[]
   states: string[]
   markets: string[]
+  categories: string[]
 }
 
 interface PaginationData {
@@ -59,13 +62,14 @@ export default function MarketPricesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
-  const [filters, setFilters] = useState<FiltersData>({ commodities: [], states: [], markets: [] })
+  const [filters, setFilters] = useState<FiltersData>({ commodities: [], states: [], markets: [], categories: [] })
   const [pagination, setPagination] = useState<PaginationData>({ total: 0, page: 1, limit: 50, totalPages: 1 })
 
   // Filter states
   const [selectedCommodity, setSelectedCommodity] = useState<string>("")
   const [selectedState, setSelectedState] = useState<string>("")
   const [selectedMarket, setSelectedMarket] = useState<string>("")
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
 
@@ -78,6 +82,7 @@ export default function MarketPricesPage() {
       if (selectedCommodity && selectedCommodity !== "all" && selectedCommodity !== "") params.append("commodity", selectedCommodity)
       if (selectedState && selectedState !== "all" && selectedState !== "") params.append("state", selectedState)
       if (selectedMarket && selectedMarket !== "all" && selectedMarket !== "") params.append("market", selectedMarket)
+      if (selectedCategory && selectedCategory !== "all" && selectedCategory !== "") params.append("category", selectedCategory)
       params.append("page", pagination.page.toString())
       params.append("limit", "50")
 
@@ -100,7 +105,7 @@ export default function MarketPricesPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedCommodity, selectedState, selectedMarket, pagination.page])
+  }, [selectedCommodity, selectedState, selectedMarket, selectedCategory, pagination.page])
 
   useEffect(() => {
     // Auth check
@@ -146,6 +151,7 @@ export default function MarketPricesPage() {
     setSelectedCommodity("")
     setSelectedState("")
     setSelectedMarket("")
+    setSelectedCategory("")
     setSearchTerm("")
     setPagination(prev => ({ ...prev, page: 1 }))
   }
@@ -158,7 +164,8 @@ export default function MarketPricesPage() {
       return (
         price.commodity.toLowerCase().includes(search) ||
         price.market.toLowerCase().includes(search) ||
-        price.state.toLowerCase().includes(search)
+        price.state.toLowerCase().includes(search) ||
+        (price.category && price.category.toLowerCase().includes(search))
       )
     })
   }, [prices, searchTerm])
@@ -194,8 +201,8 @@ export default function MarketPricesPage() {
     }
   }, [filteredPrices])
 
-  const hasActiveFilters = selectedCommodity || selectedState || selectedMarket || searchTerm
-  const activeFilterCount = [selectedCommodity, selectedState, selectedMarket, searchTerm].filter(Boolean).length
+  const hasActiveFilters = selectedCommodity || selectedState || selectedMarket || selectedCategory || searchTerm
+  const activeFilterCount = [selectedCommodity, selectedState, selectedMarket, selectedCategory, searchTerm].filter(Boolean).length
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -281,7 +288,24 @@ export default function MarketPricesPage() {
             </div>
 
             {/* Filter Dropdowns Row - Responsive Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              {/* Category Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Category</label>
+                <CustomSelect
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    ...filters.categories.map(c => ({ 
+                      value: c, 
+                      label: c.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') 
+                    }))
+                  ]}
+                  value={selectedCategory || "all"}
+                  onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}
+                  placeholder="All Categories"
+                />
+              </div>
+
               {/* Commodity Filter */}
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Commodity</label>
@@ -330,6 +354,14 @@ export default function MarketPricesPage() {
               {/* Active Filters */}
               {hasActiveFilters && (
                 <div className="flex items-center gap-1.5 flex-wrap">
+                  {selectedCategory && selectedCategory !== "all" && selectedCategory !== "" && (
+                    <Badge variant="secondary" className="gap-1 pr-1 text-xs py-1 bg-emerald-100 text-emerald-700">
+                      <span className="truncate">{selectedCategory.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+                      <button onClick={() => setSelectedCategory("")} className="ml-0.5 hover:text-red-600 transition-colors flex-shrink-0">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
                   {selectedCommodity && selectedCommodity !== "all" && selectedCommodity !== "" && (
                     <Badge variant="secondary" className="gap-1 pr-1 text-xs py-1">
                       <span className="truncate">{selectedCommodity}</span>

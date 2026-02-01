@@ -12,6 +12,8 @@ interface MarketPriceDocument {
   minPrice: number
   maxPrice: number
   modalPrice: number
+  unit?: string
+  category?: string
   date: Date
   source: string
   lastUpdated: Date
@@ -25,11 +27,12 @@ export async function GET(request: Request) {
     const commodity = searchParams.get("commodity")
     const market = searchParams.get("market")
     const state = searchParams.get("state")
+    const category = searchParams.get("category")
     const limit = parseInt(searchParams.get("limit") || "50")
     const page = parseInt(searchParams.get("page") || "1")
     
     console.log("=== MARKET PRICES API ===")
-    console.log("Filters:", { commodity, market, state, limit, page })
+    console.log("Filters:", { commodity, market, state, category, limit, page })
 
     const client = await clientPromise
     const db = client.db("FarmEase")
@@ -46,6 +49,9 @@ export async function GET(request: Request) {
     }
     if (state) {
       filter.state = { $regex: state, $options: "i" }
+    }
+    if (category) {
+      filter.category = category
     }
 
     // Get total count for pagination
@@ -71,6 +77,7 @@ export async function GET(request: Request) {
     const uniqueCommodities = await collection.distinct("commodity")
     const uniqueStates = await collection.distinct("state")
     const uniqueMarkets = await collection.distinct("market")
+    const uniqueCategories = await collection.distinct("category")
 
     console.log(`✅ Returning ${prices.length} of ${totalCount} records`)
 
@@ -85,6 +92,8 @@ export async function GET(request: Request) {
         minPrice: p.minPrice,
         maxPrice: p.maxPrice,
         modalPrice: p.modalPrice,
+        unit: p.unit || "quintal",
+        category: p.category || "other",
         date: p.date,
         source: p.source,
         lastUpdated: p.lastUpdated,
@@ -99,6 +108,7 @@ export async function GET(request: Request) {
         commodities: uniqueCommodities.sort(),
         states: uniqueStates.sort(),
         markets: uniqueMarkets.sort(),
+        categories: uniqueCategories.sort(),
       },
       metadata: {
         lastSync,
