@@ -1,79 +1,125 @@
-import { NextResponse } from "next/server"
-import clientPromise from "@/lib/mongodb"
+/**
+ * Market Sync API - Cron Endpoint
+ * 
+ * Endpoint: POST /api/market/sync
+ * 
+ * This API is called by the external cron job (cron-job.org)
+ * to sync market prices once per day.
+ * 
+ * Security:
+ * - Requires Authorization header with CRON_SECRET
+ * - Logs all sync attempts
+ * 
+ * Flow:
+ * 1. Validate cron secret
+ * 2. Call runMarketSync()
+ * 3. Return JSON summary
+ */
 
-// =======================
-// SEED DATA (same as yours)
-// =======================
-const COMMODITY_DATA = [
-  { commodity: "Rice (Paddy)", market: "Karnal", state: "Haryana", district: "Karnal", minPrice: 2150, maxPrice: 2350, modalPrice: 2250 },
-  { commodity: "Rice (Paddy)", market: "Guntur", state: "Andhra Pradesh", district: "Guntur", minPrice: 2100, maxPrice: 2280, modalPrice: 2180 },
-  { commodity: "Wheat", market: "Indore", state: "Madhya Pradesh", district: "Indore", minPrice: 2275, maxPrice: 2450, modalPrice: 2350 },
-  { commodity: "Onion", market: "Lasalgaon", state: "Maharashtra", district: "Nashik", minPrice: 1200, maxPrice: 1800, modalPrice: 1500 },
-  { commodity: "Tomato", market: "Kolar", state: "Karnataka", district: "Kolar", minPrice: 1500, maxPrice: 2500, modalPrice: 2000 },
-  { commodity: "Cotton", market: "Nagpur", state: "Maharashtra", district: "Nagpur", minPrice: 6700, maxPrice: 7300, modalPrice: 7000 },
-]
+import { NextRequest, NextResponse } from "next/server"
+import { runMarketSync, validateCronSecret } from "@/lib/marketSync"
 
-// =======================
-// API
-// =======================
-export async function GET(request: Request) {
+export const dynamic = "force-dynamic"
+export const maxDuration = 60 // 60 second timeout
+
+export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  
+  console.log("[API/market/sync] Received POST request")
+  
   try {
-    // ---------- AUTH ----------
+    // Validate cron secret
     const authHeader = request.headers.get("authorization")
-    const cronSecret = process.env.CRON_SECRET
-
-    if (!cronSecret) {
-      return NextResponse.json({ error: "CRON_SECRET missing" }, { status: 500 })
-    }
-
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    // --------------------------
-
-    const client = await clientPromise
-    const db = client.db("FarmEase")
-    const collection = db.collection("market_prices")
-
-    const now = new Date()
-
-    // 🔥 GUARANTEED INSERT USING BULKWRITE
-    const ops = COMMODITY_DATA.map(item => ({
-      updateOne: {
-        filter: {
-          commodity: item.commodity,
-          market: item.market,
-          state: item.state,
+    
+    if (!validateCronSecret(authHeader)) {
+      console.warn("[API/market/sync] Unauthorized request")
+      return NextResponse.json(
+        { 
+          error: "Unauthorized",
+          message: "Invalid or missing authorization token",
         },
-        update: {
-          $set: {
-            ...item,
-            date: now,
-            lastUpdated: now,
-            source: "agmarknet",
-          }
-        },
-        upsert: true
-      }
-    }))
-
-    const result = await collection.bulkWrite(ops)
-
-    const total = await collection.countDocuments()
-
-    console.log("UPSERTED:", result.upsertedCount)
-    console.log("MODIFIED:", result.modifiedCount)
-    console.log("TOTAL DOCS IN DB:", total)
-
+        { status: 401 }
+      )
+    }
+    
+    console.log("[API/market/sync] Authorization validated, starting sync...")
+    
+    // Run the sync
+    const result = await runMarketSync()
+    
+    const duration = Date.now() - startTime
+    console.log(`[API/market/sync] Completed in ${duration}ms`)
+    
     return NextResponse.json({
-      success: true,
-      inserted: result.upsertedCount,
-      modified: result.modifiedCount,
-      totalInDb: total,
-      syncedAt: now.toISOString()
+      ...result,
+      apiDuration: duration,
     })
+    
   } catch (error) {
-    console.error("SYNC ERROR:", error)
-    return NextResponse.json({ error: "Sync failed" }, { status: 500 })
+    const duration = Date.now() - startTime
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    
+    console.error("[API/market/sync] Error:", errorMessage)
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        apiDuration: duration,
+      },
+      { status: 500 }
+    )
+  }
+}
+
+// Also support GET for easy testing (still requires auth)
+export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
+  console.log("[API/market/sync] Received GET request")
+  
+  try {
+    // Validate cron secret
+    const authHeader = request.headers.get("authorization")
+    
+    if (!validateCronSecret(authHeader)) {
+      console.warn("[API/market/sync] Unauthorized GET request")
+      return NextResponse.json(
+        { 
+          error: "Unauthorized",
+          message: "Invalid or missing authorization token",
+          hint: "Use: Authorization: Bearer YOUR_CRON_SECRET",
+        },
+        { status: 401 }
+      )
+    }
+    
+    console.log("[API/market/sync] Authorization validated, starting sync...")
+    
+    // Run the sync
+    const result = await runMarketSync()
+    
+    const duration = Date.now() - startTime
+    console.log(`[API/market/sync] Completed in ${duration}ms`)
+    
+    return NextResponse.json({
+      ...result,
+      apiDuration: duration,
+    })
+    
+  } catch (error) {
+    const duration = Date.now() - startTime
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    
+    console.error("[API/market/sync] Error:", errorMessage)
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        apiDuration: duration,
+      },
+      { status: 500 }
+    )
   }
 }
