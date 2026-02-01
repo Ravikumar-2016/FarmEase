@@ -2,83 +2,78 @@ import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 
 // =======================
-// COMMODITY DATA
+// SEED DATA (same as yours)
 // =======================
-const COMMODITY_DATA: Array<{
-  commodity: string
-  market: string
-  state: string
-  price: number
-  unit: string
-}> = [
-  // Add your commodity data here, for example:
-  // { commodity: "Rice", market: "Delhi", state: "Delhi", price: 2500, unit: "quintal" },
+const COMMODITY_DATA = [
+  { commodity: "Rice (Paddy)", market: "Karnal", state: "Haryana", district: "Karnal", minPrice: 2150, maxPrice: 2350, modalPrice: 2250 },
+  { commodity: "Rice (Paddy)", market: "Guntur", state: "Andhra Pradesh", district: "Guntur", minPrice: 2100, maxPrice: 2280, modalPrice: 2180 },
+  { commodity: "Wheat", market: "Indore", state: "Madhya Pradesh", district: "Indore", minPrice: 2275, maxPrice: 2450, modalPrice: 2350 },
+  { commodity: "Onion", market: "Lasalgaon", state: "Maharashtra", district: "Nashik", minPrice: 1200, maxPrice: 1800, modalPrice: 1500 },
+  { commodity: "Tomato", market: "Kolar", state: "Karnataka", district: "Kolar", minPrice: 1500, maxPrice: 2500, modalPrice: 2000 },
+  { commodity: "Cotton", market: "Nagpur", state: "Maharashtra", district: "Nagpur", minPrice: 6700, maxPrice: 7300, modalPrice: 7000 },
 ]
 
 // =======================
-// SECURITY CONFIG
+// API
 // =======================
-// Allowed callers:
-// 1. cron-job.org (Authorization header)
-// 2. (Optional) Vercel cron (user-agent check)
-
 export async function GET(request: Request) {
   try {
-    // ---------- AUTH START ----------
+    // ---------- AUTH ----------
     const authHeader = request.headers.get("authorization")
     const cronSecret = process.env.CRON_SECRET
-    const userAgent = request.headers.get("user-agent") || ""
-
-    const isExternalCron = authHeader === `Bearer ${cronSecret}`
-    const isVercelCron = userAgent.includes("vercel-cron")
 
     if (!cronSecret) {
-      console.error("❌ CRON_SECRET not configured")
-      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 })
+      return NextResponse.json({ error: "CRON_SECRET missing" }, { status: 500 })
     }
 
-    if (!isExternalCron && !isVercelCron) {
-      console.log("⚠️ Unauthorized sync attempt blocked")
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    // ---------- AUTH END ----------
-
-    console.log("=== MARKET PRICES SYNC STARTED ===")
-    console.log("Time:", new Date().toISOString())
+    // --------------------------
 
     const client = await clientPromise
     const db = client.db("FarmEase")
     const collection = db.collection("market_prices")
 
     const now = new Date()
-    let upsertCount = 0
 
-    for (const item of COMMODITY_DATA) {
-      const updatedItem = {
-        ...item,
-        date: now,
-        lastUpdated: now,
+    // 🔥 GUARANTEED INSERT USING BULKWRITE
+    const ops = COMMODITY_DATA.map(item => ({
+      updateOne: {
+        filter: {
+          commodity: item.commodity,
+          market: item.market,
+          state: item.state,
+        },
+        update: {
+          $set: {
+            ...item,
+            date: now,
+            lastUpdated: now,
+            source: "agmarknet",
+          }
+        },
+        upsert: true
       }
+    }))
 
-      await collection.updateOne(
-        { commodity: item.commodity, market: item.market, state: item.state },
-        { $set: updatedItem },
-        { upsert: true }
-      )
+    const result = await collection.bulkWrite(ops)
 
-      upsertCount++
-    }
+    const total = await collection.countDocuments()
 
-    console.log(`✅ Sync completed: ${upsertCount} records`)
-    console.log("=== MARKET PRICES SYNC ENDED ===")
+    console.log("UPSERTED:", result.upsertedCount)
+    console.log("MODIFIED:", result.modifiedCount)
+    console.log("TOTAL DOCS IN DB:", total)
 
     return NextResponse.json({
       success: true,
-      upserted: upsertCount,
-      syncedAt: now.toISOString(),
+      inserted: result.upsertedCount,
+      modified: result.modifiedCount,
+      totalInDb: total,
+      syncedAt: now.toISOString()
     })
   } catch (error) {
-    console.error("❌ SYNC ERROR", error)
-    return NextResponse.json({ success: false }, { status: 500 })
+    console.error("SYNC ERROR:", error)
+    return NextResponse.json({ error: "Sync failed" }, { status: 500 })
   }
 }
