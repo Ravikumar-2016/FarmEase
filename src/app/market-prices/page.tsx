@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { CustomSelect } from "@/components/ui/custom-select"
 import {
   TrendingUp,
   TrendingDown,
@@ -73,7 +67,6 @@ export default function MarketPricesPage() {
   const [selectedState, setSelectedState] = useState<string>("")
   const [selectedMarket, setSelectedMarket] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
 
   const fetchPrices = useCallback(async () => {
@@ -82,9 +75,9 @@ export default function MarketPricesPage() {
       setError(null)
 
       const params = new URLSearchParams()
-      if (selectedCommodity && selectedCommodity !== "all") params.append("commodity", selectedCommodity)
-      if (selectedState && selectedState !== "all") params.append("state", selectedState)
-      if (selectedMarket && selectedMarket !== "all") params.append("market", selectedMarket)
+      if (selectedCommodity && selectedCommodity !== "all" && selectedCommodity !== "") params.append("commodity", selectedCommodity)
+      if (selectedState && selectedState !== "all" && selectedState !== "") params.append("state", selectedState)
+      if (selectedMarket && selectedMarket !== "all" && selectedMarket !== "") params.append("market", selectedMarket)
       params.append("page", pagination.page.toString())
       params.append("limit", "50")
 
@@ -264,179 +257,153 @@ export default function MarketPricesPage() {
         </div>
       </div>
 
-      {/* Sticky Search & Filters Bar */}
-      <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Main Search Row */}
-          <div className="flex flex-col sm:flex-row gap-3">
+      {/* Search & Filters Bar */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3 sm:p-4 mb-6 mt-6">
+          <div className="space-y-3 sm:space-y-4">
             {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search commodities, markets, or states..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-11 text-base bg-gray-50 border-gray-200 focus:bg-white"
+                className="pl-10 h-10 sm:h-11 text-sm sm:text-base bg-gray-50 border-gray-200 focus:bg-white transition-colors"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
 
-            {/* Filter Toggle Button */}
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`h-11 px-4 gap-2 ${showFilters ? "bg-emerald-50 border-emerald-300 text-emerald-700" : ""}`}
-            >
-              <Package className="h-4 w-4" />
-              <span>Filters</span>
-              {activeFilterCount > 0 && (
-                <Badge className="bg-emerald-600 text-white h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {activeFilterCount}
-                </Badge>
-              )}
-              {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-
-            {/* View Toggle */}
-            <div className="hidden sm:flex items-center bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "cards" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Cards
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Table
-              </button>
-            </div>
-          </div>
-
-          {/* Expandable Filters */}
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Commodity Filter */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Commodity</label>
-                  <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="All Commodities" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Commodities</SelectItem>
-                      {filters.commodities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* State Filter */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">State</label>
-                  <Select value={selectedState} onValueChange={setSelectedState}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="All States" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All States</SelectItem>
-                      {filters.states.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Market Filter */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Market</label>
-                  <Select value={selectedMarket} onValueChange={setSelectedMarket}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="All Markets" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Markets</SelectItem>
-                      {filters.markets.map((m) => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Filter Dropdowns Row - Responsive Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+              {/* Commodity Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Commodity</label>
+                <CustomSelect
+                  options={[
+                    { value: "all", label: "All Commodities" },
+                    ...filters.commodities.map(c => ({ value: c, label: c }))
+                  ]}
+                  value={selectedCommodity || "all"}
+                  onValueChange={(value) => setSelectedCommodity(value === "all" ? "" : value)}
+                  placeholder="All Commodities"
+                />
               </div>
 
-              {/* Active Filters Pills */}
+              {/* State Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">State</label>
+                <CustomSelect
+                  options={[
+                    { value: "all", label: "All States" },
+                    ...filters.states.map(s => ({ value: s, label: s }))
+                  ]}
+                  value={selectedState || "all"}
+                  onValueChange={(value) => setSelectedState(value === "all" ? "" : value)}
+                  placeholder="All States"
+                />
+              </div>
+
+              {/* Market Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Market</label>
+                <CustomSelect
+                  options={[
+                    { value: "all", label: "All Markets" },
+                    ...filters.markets.map(m => ({ value: m, label: m }))
+                  ]}
+                  value={selectedMarket || "all"}
+                  onValueChange={(value) => setSelectedMarket(value === "all" ? "" : value)}
+                  placeholder="All Markets"
+                />
+              </div>
+            </div>
+
+            {/* Active Filters Pills & View Toggle */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between">
+              {/* Active Filters */}
               {hasActiveFilters && (
-                <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  {selectedCommodity && selectedCommodity !== "all" && (
-                    <Badge variant="secondary" className="gap-1 pr-1">
-                      {selectedCommodity}
-                      <button onClick={() => setSelectedCommodity("")} className="ml-1 hover:text-red-600">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {selectedCommodity && selectedCommodity !== "all" && selectedCommodity !== "" && (
+                    <Badge variant="secondary" className="gap-1 pr-1 text-xs py-1">
+                      <span className="truncate">{selectedCommodity}</span>
+                      <button onClick={() => setSelectedCommodity("")} className="ml-0.5 hover:text-red-600 transition-colors flex-shrink-0">
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
                   )}
-                  {selectedState && selectedState !== "all" && (
-                    <Badge variant="secondary" className="gap-1 pr-1">
-                      {selectedState}
-                      <button onClick={() => setSelectedState("")} className="ml-1 hover:text-red-600">
+                  {selectedState && selectedState !== "all" && selectedState !== "" && (
+                    <Badge variant="secondary" className="gap-1 pr-1 text-xs py-1">
+                      <span className="truncate">{selectedState}</span>
+                      <button onClick={() => setSelectedState("")} className="ml-0.5 hover:text-red-600 transition-colors flex-shrink-0">
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
                   )}
-                  {selectedMarket && selectedMarket !== "all" && (
-                    <Badge variant="secondary" className="gap-1 pr-1">
-                      {selectedMarket}
-                      <button onClick={() => setSelectedMarket("")} className="ml-1 hover:text-red-600">
+                  {selectedMarket && selectedMarket !== "all" && selectedMarket !== "" && (
+                    <Badge variant="secondary" className="gap-1 pr-1 text-xs py-1">
+                      <span className="truncate">{selectedMarket}</span>
+                      <button onClick={() => setSelectedMarket("")} className="ml-0.5 hover:text-red-600 transition-colors flex-shrink-0">
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
                   )}
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors whitespace-nowrap"
                   >
                     Clear all
                   </button>
                 </div>
               )}
-            </div>
-          )}
-        </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              {/* View Toggle */}
+              <div className="flex items-center bg-gray-100 rounded-lg p-0.5 ml-auto">
+                <button
+                  onClick={() => setViewMode("cards")}
+                  className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === "cards" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Cards
+                </button>
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Table
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Summary Stats Cards */}
         {!loading && summaryStats && (
-          <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">{summaryStats.totalPrices}</div>
-              <div className="text-sm text-gray-500">Total Prices</div>
+          <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{summaryStats.totalPrices}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Total Prices</div>
             </div>
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-              <div className="text-2xl font-bold text-emerald-600">{summaryStats.uniqueStates}</div>
-              <div className="text-sm text-gray-500">States</div>
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-xl sm:text-2xl font-bold text-emerald-600">{summaryStats.uniqueStates}</div>
+              <div className="text-xs sm:text-sm text-gray-500">States</div>
             </div>
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-              <div className="text-2xl font-bold text-blue-600">{summaryStats.uniqueMarkets}</div>
-              <div className="text-sm text-gray-500">Markets</div>
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{summaryStats.uniqueMarkets}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Markets</div>
             </div>
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-              <div className="text-2xl font-bold text-amber-600">{filters.commodities.length}</div>
-              <div className="text-sm text-gray-500">Commodities</div>
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-xl sm:text-2xl font-bold text-amber-600">{filters.commodities.length}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Commodities</div>
             </div>
           </div>
         )}
